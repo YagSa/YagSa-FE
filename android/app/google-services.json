@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "649674857212",
+    "project_id": "yagsa-d6f8f",
+    "storage_bucket": "yagsa-d6f8f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:649674857212:android:425a9c4a2fa12a180f1579",
+        "android_client_info": {
+          "package_name": "com.cau.yagsa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFO3w_vBB6Tdnf9-oabBj5anxxYGkat0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

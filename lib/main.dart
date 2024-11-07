@@ -136,6 +136,7 @@ class _CalendarState extends State<Calendar> {
           setState(() {
             _selectedDay = selectedDay;
             _focusedDay = focusedDay;
+            print(_selectedDay);
           });
         }
       },

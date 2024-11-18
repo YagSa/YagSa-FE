@@ -14,7 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 3), () {
+    Timer(Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -33,13 +33,13 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Text(
               '약,사',
-              style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold, color: Color(0xFF629584)),
+              style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold, color: Color(0xFF629584)),
             ),
             SizedBox(
               width: 250,
               child: Divider(
                 color: Color(0xFF629584),
-                thickness: 3,
+                thickness: 2,
                 height: 0,
               ),
             ),
@@ -94,15 +94,16 @@ class _LoginPageState extends State<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(height: 100),
               Text(
                 '약,사',
-                style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold, color: Color(0xFFEEEEEE)),
+                style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold, color: Color(0xFFEEEEEE)),
               ),
               SizedBox(
                 width: 250,
                 child: Divider(
                   color: Color(0xFFEEEEEE),
-                  thickness: 3,
+                  thickness: 2,
                   height: 0,
                 ),
               ),
@@ -115,11 +116,18 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Color(0xFFEEEEEE),
-                    labelText: '이메일',
+                    labelText: 'Email',
                     labelStyle: TextStyle(color: Color(0xFF243642)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Color(0xFFEEEEEE)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Color(0xFFEEEEEE),
+                        width: 10,
+                      ),
                     ),
                   ),
                 ),
@@ -134,30 +142,36 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Color(0xFFEEEEEE),
-                    labelText: '비밀번호',
+                    labelText: 'Password',
                     labelStyle: TextStyle(color: Color(0xFF243642)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Color(0xFFEEEEEE)),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: Color(0xFFEEEEEE),
+                        width: 10,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () async {
-                  try{
+                  try {
                     //print('이메일: ${_emailController.text}');
                     //print('비밀번호: ${_passwordController.text}');
                     final currentUser = await _authentication.signInWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
-                    if (currentUser.user != null){
+                    if (currentUser.user != null) {
                       _emailController.clear();
                       _passwordController.clear();
-                      if(!mounted) return;
+                      if (!mounted) return;
                       Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
                     }
-                  }
-                  catch(e){
+                  } catch (e) {
                     print(e);
                   }
                 },
@@ -165,15 +179,19 @@ class _LoginPageState extends State<LoginPage> {
                   minimumSize: Size(250, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Color(0xFF243642), // 테두리 색상
+                      width: 2, // 테두리 두께
+                    ),// 테두리 두께
                   ),
                   backgroundColor: Color(0xFF243642),
                 ),
                 child: Text(
-                  '로그인',
+                  'Sign in',
                   style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
                 ),
               ),
-              SizedBox(height: 50),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => SignupPage()));
@@ -182,11 +200,15 @@ class _LoginPageState extends State<LoginPage> {
                   minimumSize: Size(250, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Color(0xFFEEEEEE), // 테두리 색상
+                      width: 2, // 테두리 두께
+                    ),
                   ),
-                  backgroundColor: Color(0xFF243642),
+                  backgroundColor: Color(0xFF629584),
                 ),
                 child: Text(
-                  '계정이 없나요?',
+                  'Sign up',
                   style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
                 ),
               ),

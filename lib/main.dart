@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/', // 기본 시작 페이지 경로
+      initialRoute: '/login', // 기본 시작 페이지 경로
       routes: {
         '/': (context) => AlarmScreen(), // 홈 페이지
         '/login': (context) => LoginPage(), // 로그인 페이지

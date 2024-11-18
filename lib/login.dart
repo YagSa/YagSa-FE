@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+
+import 'signup.dart';
+import 'alarm.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -67,6 +71,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _authentication = FirebaseAuth.instance;
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -139,9 +145,21 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  print('이메일: ${_emailController.text}');
-                  print('비밀번호: ${_passwordController.text}');
+                onPressed: () async {
+                  try{
+                    //print('이메일: ${_emailController.text}');
+                    //print('비밀번호: ${_passwordController.text}');
+                    final currentUser = await _authentication.signInWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
+                    if (currentUser.user != null){
+                      _emailController.clear();
+                      _passwordController.clear();
+                      if(!mounted) return;
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+                    }
+                  }
+                  catch(e){
+                    print(e);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(250, 50),
@@ -158,8 +176,7 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(height: 50),
               ElevatedButton(
                 onPressed: () {
-                  print('이메일: ${_emailController.text}');
-                  print('비밀번호: ${_passwordController.text}');
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignupPage()));
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(250, 50),

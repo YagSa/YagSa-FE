@@ -73,13 +73,19 @@ class _SignupPageState extends State<SignupPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  print('이메일: ${_emailController.text}');
-                  print('비밀번호: ${_passwordController.text}');
-                  final newUser = await _authentication.createUserWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
-                  if (newUser.user != null){
-                    _emailController.clear();
-                    _passwordController.clear();
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                  try{
+                    //print('이메일: ${_emailController.text}');
+                    //print('비밀번호: ${_passwordController.text}');
+                    final newUser = await _authentication.createUserWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
+                    if (newUser.user != null){
+                      _emailController.clear();
+                      _passwordController.clear();
+                      if(!mounted) return;
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
+                    }
+                  }
+                  catch(e){
+                    print(e);
                   }
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'login.dart';
 import 'alarm.dart';
 import 'signup.dart';
@@ -19,15 +20,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/login', // 기본 시작 페이지 경로
-      routes: {
-        '/': (context) => AlarmScreen(), // 홈 페이지
-        '/login': (context) => LoginPage(), // 로그인 페이지
-        '/signup': (context) => SignupPage(), // 프로필 페이지
-      },
+      title: '약,사',
       theme: ThemeData(
         fontFamily: "Pretendard",
       ),
+      home: StreamBuilder(stream: FirebaseAuth.instance.authStateChanges(), builder: (context, snapshot) {
+        if(snapshot.hasData){
+          return AlarmScreen();
+        }else{
+          return LoginPage();
+        }
+      })
     );
   }
 }

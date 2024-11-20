@@ -28,87 +28,70 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('시간 및 요일 설정'), // "Set Time and Day"
-        backgroundColor: Colors.teal,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "알림 시간 선택", // "Select Notification Time"
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16.0),
+        GestureDetector(
+          onTap: () => _selectTime(context),
+          child: AbsorbPointer(
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: "시간: ${selectedTime.format(context)}", // Display selected time
+                border: const OutlineInputBorder(),
+                suffixIcon: const Icon(Icons.access_time),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16.0),
+        const Text(
+          "요일 선택", // "Select Day of the Week"
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16.0),
+        DropdownButtonFormField<String>(
+          value: selectedDay,
+          items: daysOfWeek.map((String day) {
+            return DropdownMenuItem<String>(
+              value: day,
+              child: Text(day),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedDay = newValue!;
+            });
           },
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "알림 시간 선택", // "Select Notification Time"
-              style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            GestureDetector(
-              onTap: () => _selectTime(context),
-              child: AbsorbPointer(
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: "시간: ${selectedTime.format(context)}", // Display selected time
-                    border: const OutlineInputBorder(),
-                    suffixIcon: const Icon(Icons.access_time),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            const Text(
-              "요일 선택", // "Select Day of the Week"
-              style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            DropdownButtonFormField<String>(
-              value: selectedDay,
-              items: daysOfWeek.map((String day) {
-                return DropdownMenuItem<String>(
-                  value: day,
-                  child: Text(day),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedDay = newValue!;
-                });
-              },
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 32.0),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(
-                    context,
-                    NotificationSchedule(
-                      dayOfWeek: selectedDay,
-                      time: selectedTime,
-                    ),
-                  );
-                }, // "Save"
-                style: ElevatedButton.styleFrom(iconColor: Colors.teal),
-                child: const Text('Save', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
+        const SizedBox(height: 32.0),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
+              NotificationSchedule schedule = NotificationSchedule(
+                dayOfWeek: selectedDay,
+                time: selectedTime,
+              );
+              // This can be passed to a parent widget or saved as needed.
+            },
+            style: ElevatedButton.styleFrom(iconColor: Colors.teal),
+            child: const Text('Save', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

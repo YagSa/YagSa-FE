@@ -42,72 +42,55 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('정보 편집'),
-        backgroundColor: Colors.teal,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: "명칭", // Name
+            border: OutlineInputBorder(),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: nameController,
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: () => _selectDateRange(context),
+          child: AbsorbPointer(
+            child: TextField(
+              controller: usageDurationController,
               decoration: const InputDecoration(
-                labelText: "명칭", // Name
+                labelText: "복용 기간", // Usage Duration
                 border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.calendar_today),
               ),
             ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () => _selectDateRange(context),
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: usageDurationController,
-                  decoration: const InputDecoration(
-                    labelText: "복용 기간", // Usage Duration
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: additionalInfoController,
-              decoration: const InputDecoration(
-                labelText: "추가 정보", // Additional Info
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Align(
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Update the provider with new values
-                  Provider.of<MedicationInfoProvider>(context, listen: false).updateInfo(
-                    nameController.text,
-                    usageDurationController.text,
-                    additionalInfoController.text,
-                  );
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(iconColor: Colors.teal),
-                child: const Text('Save', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ),
-            )
-
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: additionalInfoController,
+          decoration: const InputDecoration(
+            labelText: "추가 정보", // Additional Info
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Align(
+          alignment: Alignment.center,
+          child: ElevatedButton(
+            onPressed: () {
+              // Update the provider with new values
+              Provider.of<MedicationInfoProvider>(context, listen: false).updateInfo(
+                nameController.text,
+                usageDurationController.text,
+                additionalInfoController.text,
+              );
+            },
+            style: ElevatedButton.styleFrom(iconColor: Colors.teal),
+            child: const Text('Save', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+        )
+      ],
     );
   }
 }

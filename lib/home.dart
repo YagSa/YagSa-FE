@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'login.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -6,6 +8,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _authentication = FirebaseAuth.instance;
+
   // Alarm toggle states
   bool alarm1 = false;
   bool alarm2 = false;
@@ -32,6 +36,27 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // "금일 복용 일정" section
+              ElevatedButton(
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SplashScreen()));
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(250, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Color(0xFFEEEEEE), // 테두리 색상
+                      width: 2, // 테두리 두께
+                    ),
+                  ),
+                  backgroundColor: Color(0xFF629584),
+                ),
+                child: Text(
+                  'Sign out',
+                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
+                ),
+              ),
               Text(
                 '금일 복용 일정',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

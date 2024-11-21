@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:yagsa/home.dart';
 import 'dart:async';
 
 import 'signup.dart';
@@ -169,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                       _emailController.clear();
                       _passwordController.clear();
                       if (!mounted) return;
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
                     }
                   } catch (e) {
                     print(e);

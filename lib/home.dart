@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'CalendarPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login.dart';
+import 'medication_info_page.dart'; // Medication Info Page Import
 
 class HomePage extends StatefulWidget {
   @override
@@ -29,6 +30,16 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         backgroundColor: Color.fromRGBO(98, 149, 132, 1),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => SplashScreen()));
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -36,29 +47,6 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Sign out button
-              ElevatedButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => SplashScreen()));
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(250, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(
-                      color: Color(0xFFEEEEEE), // 테두리 색상
-                      width: 2, // 테두리 두께
-                    ),
-                  ),
-                  backgroundColor: Color(0xFF629584),
-                ),
-                child: Text(
-                  'Sign out',
-                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
-                ),
-              ),
               SizedBox(height: 16),
               // "금일 복용 일정" section
               Text(
@@ -94,7 +82,10 @@ class _HomePageState extends State<HomePage> {
                   IconButton(
                     icon: Icon(Icons.add),
                     onPressed: () {
-                      // Add functionality for adding new medication
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MedicationInfoPage()),
+                      );
                     },
                   ),
                 ],
@@ -109,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButton: buildCustomButton(context), // Corrected position of custom button
-      floatingActionButtonLocation:  FloatingActionButtonLocation.endFloat
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -152,7 +143,6 @@ Widget buildCustomButton(BuildContext context) {
   return Container(
     width: 150, // 버튼 컨테이너 넓이
     height: 60,
-    // padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24)
     decoration: BoxDecoration(
       color: Color.fromRGBO(98, 149, 132, 1), // 녹색 배경
       borderRadius: BorderRadius.circular(30),
@@ -181,7 +171,7 @@ Widget buildCustomButton(BuildContext context) {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 15.0,bottom: 15.0),
+          padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
           child: VerticalDivider(
             color: Colors.white,
             thickness: 2,

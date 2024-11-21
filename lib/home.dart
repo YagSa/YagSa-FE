@@ -109,6 +109,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButton: buildCustomButton(context), // Corrected position of custom button
+      floatingActionButtonLocation:  FloatingActionButtonLocation.endFloat
     );
   }
 
@@ -149,7 +150,9 @@ class _HomePageState extends State<HomePage> {
 // Custom button for camera & calendar
 Widget buildCustomButton(BuildContext context) {
   return Container(
-    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+    width: 150, // 버튼 컨테이너 넓이
+    height: 60,
+    // padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24)
     decoration: BoxDecoration(
       color: Color.fromRGBO(98, 149, 132, 1), // 녹색 배경
       borderRadius: BorderRadius.circular(30),
@@ -164,33 +167,42 @@ Widget buildCustomButton(BuildContext context) {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: Icon(
-            Icons.videocam,
-            color: Colors.white,
-            size: 32,
+        Padding(
+          padding: const EdgeInsets.only(left: 15.0),
+          child: IconButton(
+            icon: Icon(
+              Icons.videocam,
+              color: Colors.white,
+              size: 32,
+            ),
+            onPressed: () {
+              // Camera button functionality
+            },
           ),
-          onPressed: () {
-            // Camera button functionality
-          },
         ),
-        VerticalDivider(
-          color: Colors.white,
-          thickness: 2,
-          width: 20,
-        ),
-        IconButton(
-          icon: Icon(
-            Icons.calendar_today,
+        Padding(
+          padding: const EdgeInsets.only(top: 15.0,bottom: 15.0),
+          child: VerticalDivider(
             color: Colors.white,
-            size: 32,
+            thickness: 2,
+            width: 20,
           ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CalendarPage()),
-            );
-          },
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 15.0),
+          child: IconButton(
+            icon: Icon(
+              Icons.calendar_today,
+              color: Colors.white,
+              size: 32,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CalendarPage()),
+              );
+            },
+          ),
         ),
       ],
     ),

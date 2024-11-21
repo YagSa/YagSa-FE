@@ -36,11 +36,12 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // "금일 복용 일정" section
+              // Sign out button
               ElevatedButton(
                 onPressed: () {
                   FirebaseAuth.instance.signOut();
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => SplashScreen()));
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => SplashScreen()));
                 },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(250, 50),
@@ -58,6 +59,8 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
                 ),
               ),
+              SizedBox(height: 16),
+              // "금일 복용 일정" section
               Text(
                 '금일 복용 일정',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -69,12 +72,12 @@ class _HomePageState extends State<HomePage> {
                   alarm1 = value;
                 });
               }),
-              buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm2, (value) {
+              buildAlarmTile('12:00', '타이레놀 / 식후 복용', alarm2, (value) {
                 setState(() {
                   alarm2 = value;
                 });
               }),
-              buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm3, (value) {
+              buildAlarmTile('18:00', '타이레놀 / 식후 복용', alarm3, (value) {
                 setState(() {
                   alarm3 = value;
                 });
@@ -84,61 +87,28 @@ class _HomePageState extends State<HomePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // "금일 복용 일정" section
                   Text(
-                    '금일 복용 일정',
+                    '관리 약물 목록',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  Divider(thickness: 1, color: Colors.grey), // Divider line
-                  SizedBox(height: 8),
-                  buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm1, (value) {
-                    setState(() {
-                      alarm1 = value;
-                    });
-                  }),
-                  buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm2, (value) {
-                    setState(() {
-                      alarm2 = value;
-                    });
-                  }),
-                  buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm3, (value) {
-                    setState(() {
-                      alarm3 = value;
-                    });
-                  }),
-                  SizedBox(height: 24),
-                  // "관리 약물 목록" section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '관리 약물 목록',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: () {
-                          // Add functionality for adding new medication
-                        },
-                      ),
-                    ],
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      // Add functionality for adding new medication
+                    },
                   ),
-                  Divider(thickness: 1, color: Colors.grey), // Divider line
-                  SizedBox(height: 8),
-                  buildMedicationTile('타이레놀', '1일 3회 / 식후 복용', '2024.10.26~2024.11.07'),
-                  buildMedicationTile('타이레놀', '1일 3회 / 식후 복용', '2024.10.26~2024.11.07'),
-                  buildMedicationTile('타이레놀', '1일 3회 / 식후 복용', '2024.10.26~2024.11.07'),
                 ],
               ),
-            ),
+              Divider(thickness: 1, color: Colors.grey), // Divider line
+              SizedBox(height: 8),
+              buildMedicationTile('타이레놀', '1일 3회 / 식후 복용', '2024.10.26~2024.11.07'),
+              buildMedicationTile('이부프로펜', '1일 2회 / 식후 복용', '2024.10.26~2024.11.07'),
+              buildMedicationTile('아스피린', '1일 1회 / 식후 복용', '2024.10.26~2024.11.07'),
+            ],
           ),
-          Positioned(
-            bottom: 16, // 하단에서 거리
-            right: 16, // 오른쪽에서 거리
-            child: buildCustomButton(context),
-          ),
-        ],
+        ),
       ),
+      floatingActionButton: buildCustomButton(context), // Corrected position of custom button
     );
   }
 
@@ -176,7 +146,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// camera & calendar widget 추가
+// Custom button for camera & calendar
 Widget buildCustomButton(BuildContext context) {
   return Container(
     padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
@@ -201,7 +171,7 @@ Widget buildCustomButton(BuildContext context) {
             size: 32,
           ),
           onPressed: () {
-            //camera button
+            // Camera button functionality
           },
         ),
         VerticalDivider(

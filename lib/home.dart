@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'CalendarPage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'login.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -7,6 +9,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _authentication = FirebaseAuth.instance;
+
   // Alarm toggle states
   bool alarm1 = false;
   bool alarm2 = false;
@@ -26,13 +30,59 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: Color.fromRGBO(98, 149, 132, 1),
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // "금일 복용 일정" section
+              ElevatedButton(
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SplashScreen()));
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(250, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Color(0xFFEEEEEE), // 테두리 색상
+                      width: 2, // 테두리 두께
+                    ),
+                  ),
+                  backgroundColor: Color(0xFF629584),
+                ),
+                child: Text(
+                  'Sign out',
+                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
+                ),
+              ),
+              Text(
+                '금일 복용 일정',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              Divider(thickness: 1, color: Colors.grey), // Divider line
+              SizedBox(height: 8),
+              buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm1, (value) {
+                setState(() {
+                  alarm1 = value;
+                });
+              }),
+              buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm2, (value) {
+                setState(() {
+                  alarm2 = value;
+                });
+              }),
+              buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm3, (value) {
+                setState(() {
+                  alarm3 = value;
+                });
+              }),
+              SizedBox(height: 24),
+              // "관리 약물 목록" section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // "금일 복용 일정" section
                   Text(

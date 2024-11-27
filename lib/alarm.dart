@@ -52,7 +52,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
         final subcollection = docRef.collection('Medication');
 
         await subcollection.add({
-          'datail': "식후 복용",
+          'detail': "식후 복용",
           'name': "강민규약",
           'img_path': downloadUrl,
           'hour': dateTime.hour,

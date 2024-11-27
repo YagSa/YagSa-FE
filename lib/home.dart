@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'CalendarPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login.dart';
+import 'alarm.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -36,29 +36,6 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Sign out button
-              ElevatedButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => SplashScreen()));
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(250, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(
-                      color: Color(0xFFEEEEEE), // 테두리 색상
-                      width: 2, // 테두리 두께
-                    ),
-                  ),
-                  backgroundColor: Color(0xFF629584),
-                ),
-                child: Text(
-                  'Sign out',
-                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
-                ),
-              ),
               SizedBox(height: 16),
               // "금일 복용 일정" section
               Text(
@@ -176,8 +153,8 @@ Widget buildCustomButton(BuildContext context) {
               size: 32,
             ),
             onPressed: () {
-              // Camera button functionality
-            },
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+              },
           ),
         ),
         Padding(

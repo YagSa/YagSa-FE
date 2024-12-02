@@ -40,11 +40,12 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black, size: 32),
+            icon: const Icon(Icons.logout, color: Colors.white, size: 32),
             onPressed: () {
               FirebaseAuth.instance.signOut();
               Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
@@ -61,58 +62,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row containing Add Medication and Add Schedule buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Add Medication button
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.teal, width: 1.5),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () async {
-                      // Clear existing data to make sure a new medication can be added
-                      Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditAllInfoPage(isNewMedication: true),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                // Add Schedule button
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.teal, width: 1.5),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.schedule),
-                    onPressed: () async {
-                      final newSchedule = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotificationSchedulePage(),
-                        ),
-                      );
-                      if (newSchedule != null) {
-                        Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
-                          newSchedule.dayOfWeek,
-                          newSchedule.time.format(context),
-                          newSchedule.isEnabled,
-                        );
-                        await Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 16),
 
             // "금일 복용 일정" section
@@ -160,9 +109,25 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
 
             // "관리 약물 목록" section
-            const Text(
-              '관리 약물 목록',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '관리 약물 목록',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MedicationInfoPage(isNewMedication: true),
+                      ),
+                    );
+                  },
+                ),
+              ]
             ),
             const Divider(thickness: 1, color: Colors.grey), // Divider line
             const SizedBox(height: 8),
@@ -173,23 +138,39 @@ class _HomePageState extends State<HomePage> {
                 itemCount: medicationProvider.medications.length,
                 itemBuilder: (context, index) {
                   final medication = medicationProvider.medications[index];
-                  return buildMedicationTile(
-                    medication['name'],
-                    medication['usageDuration'],
-                    medication['additionalInfo'],
-                    onTap: () {
-                      // Navigate to MedicationInfoPage to edit existing medication
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MedicationInfoPage(
-                            isNewMedication: false,
-                            medicationIndex: index,
-                          ),
-                        ),
+                  return Dismissible(
+                    key: Key(medication['id']), // Unique key for each schedule
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      Provider.of<ScheduleProvider>(context, listen: false).deleteSchedule(medication['id']);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('삭제되었습니다')), // Notification time has been deleted
                       );
                     },
-                  );
+                      child: buildMedicationTile(
+                      medication['name'],
+                      medication['usageDuration'],
+                      medication['additionalInfo'],
+                      onTap: () {
+                        // Navigate to MedicationInfoPage to edit existing medication
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MedicationInfoPage(
+                              isNewMedication: false,
+                              medicationIndex: index,
+                            ),
+                          ),
+                        );
+                      },
+                                        ),
+                    );
                 },
               ),
             ),

@@ -60,9 +60,10 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.teal,
+        backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_page.dart';
 import 'information_provider.dart';
+import 'notification_schedule_page.dart';
 import 'schedule_provider.dart';
 
 class MedicationInfoPage extends StatefulWidget {
@@ -27,6 +28,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
   @override
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationInfoProvider>();
+    final scheduleProvider = context.watch<ScheduleProvider>();
 
     // Check if editing an existing medication
     Map<String, dynamic>? medication;
@@ -36,9 +38,9 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("약물 정보", style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+        title: const Text("약물 정보", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color:Colors.white)),
         centerTitle: true,
-        backgroundColor: Colors.teal,
+        backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -56,34 +58,116 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.teal, width: 1.5),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditAllInfoPage(
-                            isNewMedication: widget.isNewMedication,
-                            medicationIndex: widget.medicationIndex,
-                          ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditAllInfoPage(
+                          isNewMedication: widget.isNewMedication,
+                          medicationIndex: widget.medicationIndex,
                         ),
-                      );
-                      // Reload data from Firebase after editing
-                      Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
-                    },
-                  ),
+                      ),
+                    );
+                    // Reload data from Firebase after editing
+                    Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+                  },
                 ),
               ],
             ),
+            const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 1.0),
             _buildInfoField(title: "명칭", value: medication?['name'] ?? ''), // Name
             _buildInfoField(title: "복용 기간", value: medication?['usageDuration'] ?? ''), // Usage Duration
             _buildInfoField(title: "추가 정보", value: medication?['additionalInfo'] ?? ''), // Additional Info
+
+            // 금일 복용 일정 (Today's Schedule)
+            const SizedBox(height: 20.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "금일 복용 일정",
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.schedule),
+                  onPressed: () async {
+                    final newSchedule = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationSchedulePage(),
+                      ),
+                    );
+                    if (newSchedule != null) {
+                      Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
+                        newSchedule.dayOfWeek,
+                        newSchedule.time.format(context),
+                        newSchedule.isEnabled,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+            const Divider(thickness: 1, color: Colors.grey),
+            const SizedBox(height: 10.0),
+            Expanded(
+              child: ListView.builder(
+                itemCount: scheduleProvider.schedules.length,
+                itemBuilder: (context, index) {
+                  final schedule = scheduleProvider.schedules[index];
+                  return Dismissible(
+                    key: Key(schedule['id']), // Unique key for each item
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      Provider.of<ScheduleProvider>(context, listen: false).deleteSchedule(schedule['id']);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('스케줄이 삭제되었습니다')), // Schedule has been deleted
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200], // Background color for better visual separation
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(color: Colors.grey, width: 1.0),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${schedule['dayOfWeek']} - ${schedule['time']}", // Display day and time
+                            style: const TextStyle(
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: schedule['isEnabled'],
+                            onChanged: (bool value) {
+                              Provider.of<ScheduleProvider>(context, listen: false)
+                                  .toggleSchedule(schedule['id'], value);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),

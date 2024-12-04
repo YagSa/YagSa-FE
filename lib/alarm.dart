@@ -42,7 +42,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
         });
 
         final user = FirebaseAuth.instance.currentUser;
-        final collection = FirebaseFirestore.instance.collection('Calendar_medication_list');
+
+
+
+        final collection = FirebaseFirestore.instance.collection('user').doc(user!.uid).collection('Calendar_medication_list');
 
         Timestamp currentTimestamp = Timestamp.now();
         DateTime dateTime = currentTimestamp.toDate();

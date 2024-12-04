@@ -1,102 +1,199 @@
 import 'package:flutter/material.dart';
-import 'CalendarPage.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'edit_page.dart';
 import 'login.dart';
-import 'medication_info_page.dart'; // Medication Info Page Import
+import 'medication_info_page.dart';
+import 'information_provider.dart';
+import 'schedule_provider.dart';
+import 'CalendarPage.dart';
+import 'notification_schedule_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final _authentication = FirebaseAuth.instance;
+  final user = FirebaseAuth.instance.currentUser;
 
-  // Alarm toggle states
-  bool alarm1 = false;
-  bool alarm2 = false;
-  bool alarm3 = false;
+  @override
+  void initState() {
+    super.initState();
+    // Load medication and schedule data from Firebase when the HomePage is initialized
+    Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+    Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final medicationProvider = context.watch<MedicationInfoProvider>();
+    final scheduleProvider = context.watch<ScheduleProvider>();
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(
+        title: const Text(
           '약, 사',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Color.fromRGBO(98, 149, 132, 1),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.black, size: 32),
             onPressed: () {
               FirebaseAuth.instance.signOut();
-              Navigator.push(
+              Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
+              Provider.of<ScheduleProvider>(context, listen: false).schedules = [];
+              Navigator.pushReplacement(
                   context, MaterialPageRoute(builder: (context) => SplashScreen()));
             },
           ),
         ],
+        backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16),
-              // "금일 복용 일정" section
-              Text(
-                '금일 복용 일정',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Divider(thickness: 1, color: Colors.grey), // Divider line
-              SizedBox(height: 8),
-              buildAlarmTile('06:00', '타이레놀 / 식후 복용', alarm1, (value) {
-                setState(() {
-                  alarm1 = value;
-                });
-              }),
-              buildAlarmTile('12:00', '타이레놀 / 식후 복용', alarm2, (value) {
-                setState(() {
-                  alarm2 = value;
-                });
-              }),
-              buildAlarmTile('18:00', '타이레놀 / 식후 복용', alarm3, (value) {
-                setState(() {
-                  alarm3 = value;
-                });
-              }),
-              SizedBox(height: 24),
-              // "관리 약물 목록" section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '관리 약물 목록',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Row containing Add Medication and Add Schedule buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Add Medication button
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.teal, width: 1.5),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.push(
+                  child: IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () async {
+                      // Clear existing data to make sure a new medication can be added
+                      Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
+                      await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => MedicationInfoPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const EditAllInfoPage(isNewMedication: true),
+                        ),
                       );
                     },
                   ),
-                ],
+                ),
+                // Add Schedule button
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.teal, width: 1.5),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.schedule),
+                    onPressed: () async {
+                      final newSchedule = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationSchedulePage(),
+                        ),
+                      );
+                      if (newSchedule != null) {
+                        Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
+                          newSchedule.dayOfWeek,
+                          newSchedule.time.format(context),
+                          newSchedule.isEnabled,
+                        );
+                        await Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // "금일 복용 일정" section
+            const Text(
+              '금일 복용 일정',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const Divider(thickness: 1, color: Colors.grey), // Divider line
+            const SizedBox(height: 8),
+
+            // Separate scrolling for today's schedule
+            Expanded(
+              child: ListView.builder(
+                itemCount: scheduleProvider.schedules.length,
+                itemBuilder: (context, index) {
+                  final schedule = scheduleProvider.schedules[index];
+                  return Dismissible(
+                    key: Key(schedule['id']), // Unique key for each schedule
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      Provider.of<ScheduleProvider>(context, listen: false).deleteSchedule(schedule['id']);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('알림 시간이 삭제되었습니다')), // Notification time has been deleted
+                      );
+                    },
+                    child: buildAlarmTile(
+                      schedule['time'],
+                      schedule['dayOfWeek'],
+                      schedule['isEnabled'],
+                          (value) {
+                        scheduleProvider.toggleSchedule(schedule['id'], value);
+                      },
+                    ),
+                  );
+                },
               ),
-              Divider(thickness: 1, color: Colors.grey), // Divider line
-              SizedBox(height: 8),
-              buildMedicationTile('타이레놀', '1일 3회 / 식후 복용', '2024.10.26~2024.11.07'),
-              buildMedicationTile('이부프로펜', '1일 2회 / 식후 복용', '2024.10.26~2024.11.07'),
-              buildMedicationTile('아스피린', '1일 1회 / 식후 복용', '2024.10.26~2024.11.07'),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // "관리 약물 목록" section
+            const Text(
+              '관리 약물 목록',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const Divider(thickness: 1, color: Colors.grey), // Divider line
+            const SizedBox(height: 8),
+
+            // Separate scrolling for medication list
+            Expanded(
+              child: ListView.builder(
+                itemCount: medicationProvider.medications.length,
+                itemBuilder: (context, index) {
+                  final medication = medicationProvider.medications[index];
+                  return buildMedicationTile(
+                    medication['name'],
+                    medication['usageDuration'],
+                    medication['additionalInfo'],
+                    onTap: () {
+                      // Navigate to MedicationInfoPage to edit existing medication
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MedicationInfoPage(
+                            isNewMedication: false,
+                            medicationIndex: index,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: buildCustomButton(context), // Corrected position of custom button
@@ -110,7 +207,7 @@ class _HomePageState extends State<HomePage> {
       child: ListTile(
         title: Text(
           time,
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(description),
         trailing: Switch(
@@ -122,17 +219,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Widget to build each medication tile
-  Widget buildMedicationTile(String name, String dosage, String duration) {
+  Widget buildMedicationTile(String name, String usageDuration, String additionalInfo, {required VoidCallback onTap}) {
     return Card(
       child: ListTile(
         title: Text(
           name,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text('$dosage\n$duration'),
-        onTap: () {
-          // Add functionality for editing medication
-        },
+        subtitle: Text("$usageDuration\n$additionalInfo"),
+        onTap: onTap,
       ),
     );
   }
@@ -141,16 +236,16 @@ class _HomePageState extends State<HomePage> {
 // Custom button for camera & calendar
 Widget buildCustomButton(BuildContext context) {
   return Container(
-    width: 150, // 버튼 컨테이너 넓이
+    width: 150, // Button container width
     height: 60,
     decoration: BoxDecoration(
-      color: Color.fromRGBO(98, 149, 132, 1), // 녹색 배경
+      color: const Color.fromRGBO(98, 149, 132, 1), // Green background
       borderRadius: BorderRadius.circular(30),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withOpacity(0.2),
           blurRadius: 8,
-          offset: Offset(0, 4),
+          offset: const Offset(0, 4),
         ),
       ],
     ),
@@ -160,7 +255,7 @@ Widget buildCustomButton(BuildContext context) {
         Padding(
           padding: const EdgeInsets.only(left: 15.0),
           child: IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.videocam,
               color: Colors.white,
               size: 32,
@@ -170,8 +265,8 @@ Widget buildCustomButton(BuildContext context) {
             },
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+        const Padding(
+          padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
           child: VerticalDivider(
             color: Colors.white,
             thickness: 2,
@@ -181,7 +276,7 @@ Widget buildCustomButton(BuildContext context) {
         Padding(
           padding: const EdgeInsets.only(right: 15.0),
           child: IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.calendar_today,
               color: Colors.white,
               size: 32,

@@ -1,155 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'information_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_page.dart';
-import 'notification_schedule_page.dart';
+import 'information_provider.dart';
+import 'schedule_provider.dart';
 
 class MedicationInfoPage extends StatefulWidget {
-  const MedicationInfoPage({super.key});
+  final bool isNewMedication; // Indicates if adding a new medication or editing
+  final int? medicationIndex; // Index of medication for editing, null if new
+
+  const MedicationInfoPage({Key? key, required this.isNewMedication, this.medicationIndex}) : super(key: key);
 
   @override
   _MedicationInfoPageState createState() => _MedicationInfoPageState();
 }
 
 class _MedicationInfoPageState extends State<MedicationInfoPage> {
-  List<NotificationSchedule> schedules = [];
+  final user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => MedicationInfoProvider(),
-      child: Consumer<MedicationInfoProvider>(
-        builder: (context, provider, child) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('약 정보 추가'),
-              backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Info Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "기본 정보", // Basic Info
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4.0),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.80,
-                            height: 2.0,
-                            color: Colors.black, // Color of the horizontal underline
-                          ),
-                        ],
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 1.1),
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            // Placeholder for edit functionality
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10.0),
-                  _buildInfoField(title: "명칭", value: provider.name), // Name
-                  _buildInfoField(title: "복용 기간", value: provider.usageDuration), // Usage Duration
-                  _buildInfoField(title: "추가 정보", value: provider.additionalInfo), // Additional Info
+    final medicationProvider = context.watch<MedicationInfoProvider>();
 
-                  // Today's Schedule Section
-                  const SizedBox(height: 20.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "금일 복용 일정", // Today's Schedule
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4.0),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.80,
-                            height: 2.0,
-                            color: Colors.black, // Color of the horizontal underline
-                          ),
-                        ],
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 1.1),
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () {
-                            // Placeholder for adding a schedule
-                          },
-                        ),
-                      ),
-                    ],
+    // Check if editing an existing medication
+    Map<String, dynamic>? medication;
+    if (!widget.isNewMedication && widget.medicationIndex != null) {
+      medication = medicationProvider.medications[widget.medicationIndex!];
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("약물 정보", style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.teal,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 기본 정보 (Basic Info)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "기본 정보",
+                  style: TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 10.0),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: schedules.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10.0),
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200], // Background color for better visual separation
-                            borderRadius: BorderRadius.circular(8.0),
-                            border: Border.all(color: Colors.grey, width: 1.0),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "${schedules[index].dayOfWeek} - ${schedules[index].time.format(context)}", // Display day and time
-                                style: const TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Switch(
-                                value: schedules[index].isEnabled,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    schedules[index].isEnabled = value;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.teal, width: 1.5),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                ],
-              ),
+                  child: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditAllInfoPage(
+                            isNewMedication: widget.isNewMedication,
+                            medicationIndex: widget.medicationIndex,
+                          ),
+                        ),
+                      );
+                      // Reload data from Firebase after editing
+                      Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+                    },
+                  ),
+                ),
+              ],
             ),
-          );
-        },
+            const SizedBox(height: 1.0),
+            _buildInfoField(title: "명칭", value: medication?['name'] ?? ''), // Name
+            _buildInfoField(title: "복용 기간", value: medication?['usageDuration'] ?? ''), // Usage Duration
+            _buildInfoField(title: "추가 정보", value: medication?['additionalInfo'] ?? ''), // Additional Info
+          ],
+        ),
       ),
     );
   }
@@ -158,15 +94,20 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 10.0),
-        Text(title),
+        const SizedBox(height: 4.0),
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 1.0),
         TextField(
+          readOnly: true,
           decoration: InputDecoration(
             hintText: value,
             border: const OutlineInputBorder(),
           ),
-          readOnly: true,
         ),
+        const SizedBox(height: 10.0),
       ],
     );
   }

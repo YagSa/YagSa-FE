@@ -22,7 +22,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Load medication and schedule data from Firebase when the HomePage is initialized
     Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
     Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
   }
@@ -35,11 +34,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        automaticallyImplyLeading: false, // 뒤로가기 버튼 제거
         title: const Text(
           '약, 사',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: Colors.white, // 흰색으로 변경
           ),
         ),
         actions: [
@@ -61,31 +62,15 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row containing Add Medication and Add Schedule buttons
+            // "금일 복용 일정" section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Add Medication button
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.teal, width: 1.5),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () async {
-                      // Clear existing data to make sure a new medication can be added
-                      Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditAllInfoPage(isNewMedication: true),
-                        ),
-                      );
-                    },
-                  ),
+                const Text(
+                  '금일 복용 일정',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                // Add Schedule button
+                // 시계 아이콘 버튼
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.teal, width: 1.5),
@@ -113,24 +98,15 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            // "금일 복용 일정" section
-            const Text(
-              '금일 복용 일정',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
             const Divider(thickness: 1, color: Colors.grey), // Divider line
             const SizedBox(height: 8),
-
-            // Separate scrolling for today's schedule
             Expanded(
               child: ListView.builder(
                 itemCount: scheduleProvider.schedules.length,
                 itemBuilder: (context, index) {
                   final schedule = scheduleProvider.schedules[index];
                   return Dismissible(
-                    key: Key(schedule['id']), // Unique key for each schedule
+                    key: Key(schedule['id']),
                     background: Container(
                       color: Colors.red,
                       alignment: Alignment.centerRight,
@@ -141,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                     onDismissed: (direction) {
                       Provider.of<ScheduleProvider>(context, listen: false).deleteSchedule(schedule['id']);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('알림 시간이 삭제되었습니다')), // Notification time has been deleted
+                        const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
                       );
                     },
                     child: buildAlarmTile(
@@ -156,18 +132,39 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
-
             const SizedBox(height: 16),
 
             // "관리 약물 목록" section
-            const Text(
-              '관리 약물 목록',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '관리 약물 목록',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                // '+' 버튼
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.teal, width: 1.5),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () async {
+                      Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditAllInfoPage(isNewMedication: true),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            const Divider(thickness: 1, color: Colors.grey), // Divider line
+            const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 8),
-
-            // Separate scrolling for medication list
             Expanded(
               child: ListView.builder(
                 itemCount: medicationProvider.medications.length,
@@ -178,7 +175,6 @@ class _HomePageState extends State<HomePage> {
                     medication['usageDuration'],
                     medication['additionalInfo'],
                     onTap: () {
-                      // Navigate to MedicationInfoPage to edit existing medication
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -196,12 +192,11 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      floatingActionButton: buildCustomButton(context), // Corrected position of custom button
+      floatingActionButton: buildCustomButton(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  // Widget to build each alarm tile
   Widget buildAlarmTile(String time, String description, bool isActive, Function(bool) onChanged) {
     return Card(
       child: ListTile(
@@ -218,7 +213,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Widget to build each medication tile
   Widget buildMedicationTile(String name, String usageDuration, String additionalInfo, {required VoidCallback onTap}) {
     return Card(
       child: ListTile(
@@ -233,13 +227,12 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Custom button for camera & calendar
 Widget buildCustomButton(BuildContext context) {
   return Container(
-    width: 150, // Button container width
+    width: 150,
     height: 60,
     decoration: BoxDecoration(
-      color: const Color.fromRGBO(98, 149, 132, 1), // Green background
+      color: const Color.fromRGBO(98, 149, 132, 1),
       borderRadius: BorderRadius.circular(30),
       boxShadow: [
         BoxShadow(

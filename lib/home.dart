@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alarm/alarm.dart';
+import 'package:intl/intl.dart';
+import 'dart:async';
+
 import 'edit_page.dart';
 import 'login.dart';
 import 'medication_info_page.dart';
@@ -9,7 +12,10 @@ import 'information_provider.dart';
 import 'schedule_provider.dart';
 import 'CalendarPage.dart';
 import 'alarm.dart';
+import 'permission.dart';
+import 'alarm_test.dart';
 import 'notification_schedule_page.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,48 +27,87 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final user = FirebaseAuth.instance.currentUser;
 
+  List<AlarmSettings> alarms = [];
+  static StreamSubscription<AlarmSettings>? ringSubscription;
+  static StreamSubscription<int>? updateSubscription;
+
   @override
   void initState() {
     super.initState();
-    // Load medication and schedule data from Firebase when the HomePage is initialized
     Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
     Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
+        AlarmPermissions.checkNotificationPermission();
+    if (Alarm.android) {
+      AlarmPermissions.checkAndroidScheduleExactAlarmPermission();
+    }
+    unawaited(loadAlarms());
+    ringSubscription ??= Alarm.ringStream.stream.listen(navigateToRingScreen);
+    updateSubscription ??= Alarm.updateStream.stream.listen((_) {
+      unawaited(loadAlarms());
+    });
   }
 
-  // 알람 설정 함수
-  Future<void> _setAlarm({
+  Future<void> loadAlarms() async {
+    final updatedAlarms = await Alarm.getAlarms();
+    updatedAlarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+    setState(() {
+      alarms = updatedAlarms;
+    });
+  }
+
+  Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) =>
+            ExampleAlarmRingScreen(alarmSettings: alarmSettings),
+      ),
+    );
+    unawaited(loadAlarms());
+  }
+
+  Future<void> _setDailyAlarm({
     required String id,
     required DateTime dateTime,
     required String title,
   }) async {
-    // 알람 설정
     final alarmSettings = AlarmSettings(
-      id: id.hashCode, // Unique identifier for the alarm
-      dateTime: dateTime, // Alarm time
-      assetAudioPath: 'assets/alarm.mp3', // Path to alarm sound in assets
+      id: id.hashCode,
+      dateTime: dateTime,
+      assetAudioPath: 'assets/alarm.MP3',
       notificationSettings: NotificationSettings(
-        title: 'Alarm', // Notification title
-        body: 'It\'s time for $title!', // Notification body
-        stopButton: 'Stop', // Optional: Label for the stop button
-        icon: 'app_icon', // Optional: Custom notification icon (drawable resource name)
+        title: 'Alarm',
+        body: 'It\'s time for $title!',
+        stopButton: 'Stop',
+        icon: 'app_icon',
       ),
-      loopAudio: true, // Should the alarm sound loop
-      vibrate: true, // Should the phone vibrate
-      volume: 1.0, // Set alarm volume (1.0 is 100%)
-      volumeEnforced: true, // Enforce the set volume
-      fadeDuration: 0.0, // Duration of fade-in for the alarm sound
-      warningNotificationOnKill: true, // Show warning if app is killed
-      androidFullScreenIntent: true, // Launch a full-screen intent for the alarm
+      loopAudio: true,
+      vibrate: true,
+      volume: 0.1,
+      volumeEnforced: true,
+      fadeDuration: 0.0,
+      warningNotificationOnKill: true,
+      androidFullScreenIntent: true,
     );
 
     await Alarm.set(alarmSettings: alarmSettings);
     print('Alarm set: $title at $dateTime');
   }
 
-  // 알람 삭제 함수
   Future<void> _deleteAlarm(String id) async {
     await Alarm.stop(id.hashCode);
     print('Alarm deleted: $id');
+  }
+
+  DateTime parseTime(String time) {
+    final DateFormat format = DateFormat('hh:mm a');
+    try {
+      DateTime parsedTime = format.parse(time);
+      return DateTime.now().copyWith(hour: parsedTime.hour, minute: parsedTime.minute, second: 0, millisecond: 0);
+    } catch (e) {
+      print('Error parsing time: $e');
+      return DateTime.now(); // 에러 처리
+    }
   }
 
   @override
@@ -101,23 +146,19 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-
-            // "금일 복용 일정" section
             const Text(
               '금일 복용 일정',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const Divider(thickness: 1, color: Colors.grey), // Divider line
+            const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 8),
-
-            // Separate scrolling for today's schedule
             Expanded(
               child: ListView.builder(
                 itemCount: scheduleProvider.schedules.length,
                 itemBuilder: (context, index) {
                   final schedule = scheduleProvider.schedules[index];
                   return Dismissible(
-                    key: Key(schedule['id']), // Unique key for each schedule
+                    key: Key(schedule['id']),
                     background: Container(
                       color: Colors.red,
                       alignment: Alignment.centerRight,
@@ -126,38 +167,33 @@ class _HomePageState extends State<HomePage> {
                     ),
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) async {
-                      // 알람 삭제
                       await _deleteAlarm(schedule['id']);
                       scheduleProvider.deleteSchedule(schedule['id']);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('알림 시간이 삭제되었습니다')), // Notification time has been deleted
+                        const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
                       );
                     },
                     child: buildAlarmTile(
                       schedule['time'],
                       schedule['dayOfWeek'],
                       schedule['isEnabled'],
-                          (value) async {
-                        scheduleProvider.toggleSchedule(schedule['id'], value);
-                        if (value) {
-                          await _setAlarm(
-                            id: schedule['id'],
-                            dateTime: DateTime.parse(schedule['time']),
-                            title: '알람',
-                          );
-                        } else {
-                          await _deleteAlarm(schedule['id']);
-                        }
+                          (value) {
+                        setState(() {
+                          try {
+                            DateTime alarmTime = parseTime(schedule['time']);
+                            print('Parsed alarm time: $alarmTime');
+                            scheduleProvider.toggleSchedule(schedule['id'], value);
+                          } catch (e) {
+                            print('Error parsing time: $e');
+                          }
+                        });
                       },
                     ),
                   );
                 },
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // "관리 약물 목록" section
             Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -177,10 +213,9 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                 ]),
-            const Divider(thickness: 1, color: Colors.grey), // Divider line
-            const SizedBox(height: 8),
 
-            // Separate scrolling for medication list
+            const Divider(thickness: 1, color: Colors.grey),
+            const SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
                 itemCount: medicationProvider.medications.length,
@@ -191,7 +226,6 @@ class _HomePageState extends State<HomePage> {
                     medication['usageDuration'],
                     medication['additionalInfo'],
                     onTap: () {
-                      // Navigate to MedicationInfoPage to edit existing medication
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -224,7 +258,23 @@ class _HomePageState extends State<HomePage> {
         subtitle: Text(description),
         trailing: Switch(
           value: isActive,
-          onChanged: onChanged,
+          onChanged: (value) {
+            onChanged(value);
+            try {
+              DateTime alarmTime = parseTime(time);
+              if (value) {
+                _setDailyAlarm(
+                  id: description,
+                  dateTime: alarmTime,
+                  title: description,
+                );
+              } else {
+                _deleteAlarm(description);
+              }
+            } catch (e) {
+              print('Error parsing time: $e');
+            }
+          },
         ),
       ),
     );

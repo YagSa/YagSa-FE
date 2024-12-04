@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -77,15 +78,15 @@ class _CalendarPageState extends State<CalendarPage> {
                   child: _medicationHistory.isEmpty
                       ? const Center(child: Text('해당 날짜에 복용 기록이 없습니다.'))
                       : ListView.builder(
-                    itemCount: _medicationHistory.length,
-                    itemBuilder: (context, index) {
-                      final medication = _medicationHistory[index];
-                      return MedicationCard(
-                        time: '${medication['hour']}:${medication['minute']}',
-                        name: medication['name'] ?? '약 이름 없음',
-                        detail: medication['detail'] ?? 'nothing',
-                        imagePath: medication['img_path'] ?? 'not yet',
-                      );
+                      itemCount: _medicationHistory.length,
+                      itemBuilder: (context, index) {
+                        final medication = _medicationHistory[index];
+                        return MedicationCard(
+                          time: '${medication['hour'].toString().padLeft(2, '0')}:${medication['minute'].toString().padLeft(2, '0')}',
+                          name: medication['name'] ?? '약 이름 없음',
+                          detail: medication['detail'] ?? '정보 없음',
+                          imagePath: medication['img_path'] ?? '',
+                        );
                     },
                   ),
                 ),
@@ -101,10 +102,13 @@ class _CalendarPageState extends State<CalendarPage> {
   Future<void> _fetchMedicationHistory(DateTime selectedDate) async {
     final String formattedDate =
         '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-
+    final currentUser = FirebaseAuth.instance.currentUser;
+    print(currentUser);
     try {
       // 해당 날짜의 서브컬렉션(Medication) 데이터를 가져옵니다.
       final querySnapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .doc(currentUser!.uid)
           .collection('Calendar_medication_list')
           .doc(formattedDate)
           .collection('Medication')
@@ -148,23 +152,33 @@ class _MedicationCardState extends State<MedicationCard> {
   @override
   void initState() {
     super.initState();
-    _loadImage(); // 이미지 로드
+    _initializeImage(); // 이미지 초기화
   }
 
-  Future<void> _loadImage() async {
+  Future<void> _initializeImage() async {
     try {
-      final String url = await FirebaseStorage.instance
-          .ref(widget.imagePath) // Firestore의 img_path를 참조
-          .getDownloadURL(); // 다운로드 URL 가져오기
+      final String? url = await _fetchDownloadUrl(widget.imagePath);
       setState(() {
-        _imageUrl = url; // URL 설정
+        _imageUrl = url;
       });
     } catch (e) {
       print('Error loading image: $e');
       setState(() {
-        _imageUrl = null; // URL이 없으면 null 설정
+        _imageUrl = null;
       });
     }
+  }
+
+  Future<String?> _fetchDownloadUrl(String path) async {
+    if (_isHttpUrl(path)) {
+      return path;
+    } else {
+      return await FirebaseStorage.instance.ref(path).getDownloadURL();
+    }
+  }
+
+  bool _isHttpUrl(String path) {
+    return path.startsWith('http://') || path.startsWith('https://');
   }
 
   @override
@@ -209,11 +223,24 @@ class _MedicationCardState extends State<MedicationCard> {
             flex: 2,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
-              child: Image.asset(
-                widget.imagePath,
-                height: 100,
-                width: 150,
-                fit: BoxFit.cover,
+              child: _imageUrl == null
+                  ? const Center(
+                child: CircularProgressIndicator(), // 로딩 표시
+              )
+                  : Image.network(
+                  _imageUrl!,
+                  height: 100,
+                  width: 150,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(
+                      child: CircularProgressIndicator(), // 로딩 애니메이션
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.error); // 로드 실패 시 대체 아이콘
+                  },
               ),
             ),
           ),

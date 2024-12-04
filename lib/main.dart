@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'information_provider.dart';
 import 'schedule_provider.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'login.dart';
 import 'home.dart';
 
@@ -14,6 +15,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseAppCheck.instance.activate();
 
   runApp(
     MultiProvider(

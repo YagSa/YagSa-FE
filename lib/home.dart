@@ -8,6 +8,7 @@ import 'information_provider.dart';
 import 'schedule_provider.dart';
 import 'CalendarPage.dart';
 import 'notification_schedule_page.dart';
+import 'alarm.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -242,8 +243,8 @@ Widget buildCustomButton(BuildContext context) {
               size: 32,
             ),
             onPressed: () {
-              // Camera button functionality
-            },
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+              },
           ),
         ),
         const Padding(

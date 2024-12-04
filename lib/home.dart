@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute<void>(
         builder: (context) =>
-            ExampleAlarmRingScreen(alarmSettings: alarmSettings),
+            AlarmScreen(alarmSettings: alarmSettings),
       ),
     );
     unawaited(loadAlarms());
@@ -70,6 +70,7 @@ class _HomePageState extends State<HomePage> {
     required String id,
     required DateTime dateTime,
     required String title,
+    required String body,
   }) async {
     final alarmSettings = AlarmSettings(
       id: id.hashCode,
@@ -106,7 +107,7 @@ class _HomePageState extends State<HomePage> {
       return DateTime.now().copyWith(hour: parsedTime.hour, minute: parsedTime.minute, second: 0, millisecond: 0);
     } catch (e) {
       print('Error parsing time: $e');
-      return DateTime.now(); // 에러 처리
+      return DateTime.now();
     }
   }
 
@@ -175,6 +176,8 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: buildAlarmTile(
                       schedule['time'],
+                      //(String time, String title, String description, bool isActive, Function(bool) onChanged)
+                      schedule['dayOfWeek'],
                       schedule['dayOfWeek'],
                       schedule['isEnabled'],
                           (value) {
@@ -248,7 +251,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildAlarmTile(String time, String description, bool isActive, Function(bool) onChanged) {
+  Widget buildAlarmTile(String time, String title, String description, bool isActive, Function(bool) onChanged) {
     return Card(
       child: ListTile(
         title: Text(
@@ -264,9 +267,10 @@ class _HomePageState extends State<HomePage> {
               DateTime alarmTime = parseTime(time);
               if (value) {
                 _setDailyAlarm(
-                  id: description,
+                  id: time,
                   dateTime: alarmTime,
-                  title: description,
+                  title: title,
+                  body: description,
                 );
               } else {
                 _deleteAlarm(description);

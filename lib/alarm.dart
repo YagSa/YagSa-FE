@@ -5,9 +5,15 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:alarm/alarm.dart';
+
 import 'home.dart';
 
 class AlarmScreen extends StatefulWidget {
+
+  const AlarmScreen({required this.alarmSettings, super.key});
+  final AlarmSettings alarmSettings;
+
   @override
   _AlarmScreenState createState() => _AlarmScreenState();
 }
@@ -15,12 +21,12 @@ class AlarmScreen extends StatefulWidget {
 class _AlarmScreenState extends State<AlarmScreen> {
   XFile? _image;
   final ImagePicker picker = ImagePicker();
-  String _medicineName = '테이레놀';
   bool _isUploading = false;
   final _authentication = FirebaseAuth.instance;
 
+
   // 이미지 선택 및 업로드
-  Future<void> getImageAndUpload(ImageSource imageSource) async {
+  Future<void> getImageAndUpload(ImageSource imageSource, String title, String datail) async {
     final XFile? pickedFile = await picker.pickImage(source: imageSource);
     if (pickedFile != null) {
       setState(() {
@@ -55,8 +61,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
         final subcollection = docRef.collection('Medication');
 
         await subcollection.add({
-          'datail': "식후 복용",
-          'name': "강민규약",
+          'datail': datail,
+          'name': title,
           'img_path': downloadUrl,
           'hour': dateTime.hour,
           'minute': dateTime.minute,
@@ -65,7 +71,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
         }).catchError((e) {
           print('에러 발생: $e');
         });
-
 
         //ScaffoldMessenger.of(context).showSnackBar(
         //  SnackBar(content: Text('사진이 업로드되었습니다! URL: $downloadUrl')),
@@ -97,7 +102,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
             ),
             SizedBox(height: 20),
             Text(
-              _medicineName,
+              widget.alarmSettings.notificationSettings.title,
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
@@ -117,7 +122,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
               children: [
                 TextButton(
                   onPressed: () {
-                    getImageAndUpload(ImageSource.camera);
+                    getImageAndUpload(ImageSource.camera, widget.alarmSettings.notificationSettings.title, widget.alarmSettings.notificationSettings.body);
                   },
                   child: _isUploading
                       ? CircularProgressIndicator(color: Colors.white)

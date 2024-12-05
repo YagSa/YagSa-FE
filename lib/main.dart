@@ -27,23 +27,27 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '약,사',
-      theme: ThemeData(
-        fontFamily: "Pretendard",
-      ),
-      home: StreamBuilder(stream: FirebaseAuth.instance.authStateChanges(), builder: (context, snapshot) {
-        if(snapshot.hasData){
-          Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
-          Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
-          return HomePage();
-        }else{
-          return SplashScreen();
-        }
-      })
-    );
+        title: '약,사',
+        theme: ThemeData(
+          fontFamily: "Pretendard",
+        ),
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null) {
+                Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase(user.uid);
+              }
+              return const HomePage();
+            } else {
+              return SplashScreen();
+            }
+          },
+        ));
   }
 }

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'schedule_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationSchedulePage extends StatefulWidget {
-  const NotificationSchedulePage({super.key});
+  final String medicationId;
+  const NotificationSchedulePage({super.key, required this.medicationId});
 
   @override
   _NotificationSchedulePageState createState() => _NotificationSchedulePageState();
@@ -44,6 +44,7 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text(
           "일정 편집",
           style: TextStyle(
@@ -62,18 +63,18 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
             const Text(
               "알림 시간 선택", // "Select Notification Time"
               style: TextStyle(
-                fontSize: 18.0,
+                fontSize: 20.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const Divider(thickness: 1, color: Colors.black),
-            const SizedBox(height: 4.0),
+            const SizedBox(height: 20.0),
             GestureDetector(
               onTap: () => _selectTime(context),
               child: AbsorbPointer(
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: "시간: ${selectedTime.format(context)}", // Display selected time
+                    labelText: "시간: ${formatTimeOfDay(selectedTime)}", // Display selected time
                     border: const OutlineInputBorder(),
                     suffixIcon: const Icon(Icons.access_time),
                   ),
@@ -81,65 +82,37 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
               ),
             ),
             const SizedBox(height: 50.0),
-            const Text(
-              "요일 선택", // "Select Day of the Week"
-              style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Divider(thickness: 1, color: Colors.black),
-            const SizedBox(height: 4.0),
-            DropdownButtonFormField<String>(
-              value: selectedDay,
-              items: daysOfWeek.map((String day) {
-                return DropdownMenuItem<String>(
-                  value: day,
-                  child: Text(day),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedDay = newValue!;
-                });
-              },
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 32.0),
             Center(
               child: isLoading
                   ? CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () async {
                         setState(() {
-                        isLoading = true; // Bắt đầu tải
+                          isLoading = true;
                         });
-                        try {
-                          NotificationSchedule schedule = NotificationSchedule(
-                            dayOfWeek: selectedDay,
-                            time: selectedTime,
-                          );
-                          await Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
-                            selectedDay,
-                            formatTimeOfDay(selectedTime),
-                            true,
-                          );
-                          await Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
-                          Navigator.pop(context, schedule);
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('error: $e')),
-                           );
-                        } finally {
-                            setState(() {
-                            isLoading = false; // Dừng tải
-                          });
-                         }
-                        },
-                        style: ElevatedButton.styleFrom(iconColor: Colors.teal),
-                        child: const Text('저장', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    try {
+                      NotificationSchedule schedule = NotificationSchedule(
+                         time: selectedTime,
+                       );
+                       await Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
+                          widget.medicationId, // Pass the medicationId here
+                          formatTimeOfDay(selectedTime),
+                          true,
+                        );
+                       await Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase(widget.medicationId);
+                       Navigator.pop(context, schedule);
+                    } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                           SnackBar(content: Text('error: $e')),
+                        );
+                    } finally {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    },
+                     style: ElevatedButton.styleFrom(iconColor: Colors.teal),
+                     child: const Text('저장', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ),
             ),
           ],
@@ -150,9 +123,8 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
 }
 
 class NotificationSchedule {
-  String dayOfWeek;
   TimeOfDay time;
   bool isEnabled;
 
-  NotificationSchedule({required this.dayOfWeek, required this.time, this.isEnabled = true});
+  NotificationSchedule({required this.time, this.isEnabled = true});
 }

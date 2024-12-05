@@ -5,10 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 class MedicationInfoProvider extends ChangeNotifier {
   List<Map<String, dynamic>> medications = [];
 
-  // Update the info of a specific medication by its index
-  void updateMedication(int index, String newName, String newUsageDuration, String newAdditionalInfo) {
-    if (index >= 0 && index < medications.length) {
-      medications[index] = {
+  // Update the info of a specific medication by its ID
+  void updateMedication(String medicationId, String newName, String newUsageDuration, String newAdditionalInfo) {
+    final medicationIndex = medications.indexWhere((med) => med['id'] == medicationId);
+    if (medicationIndex != -1) {
+      medications[medicationIndex] = {
+        'id': medicationId,
         'name': newName,
         'usageDuration': newUsageDuration,
         'additionalInfo': newAdditionalInfo,
@@ -52,7 +54,7 @@ class MedicationInfoProvider extends ChangeNotifier {
   }
 
   // Save a new medication to Firebase
-  Future<void> saveNewToFirebase(String name, String usageDuration, String additionalInfo) async {
+  Future<String> saveNewToFirebase(String name, String usageDuration, String additionalInfo) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentReference userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
@@ -65,9 +67,11 @@ class MedicationInfoProvider extends ChangeNotifier {
       };
 
       // Add a new document to 'medications' collection
-      await userDoc.collection('medications').add(newMedicationData);
+      DocumentReference newDoc = await userDoc.collection('medications').add(newMedicationData);
       await loadFromFirebase(); // Reload to update the local list
+      return newDoc.id; // Return the medicationId for further use
     }
+    return ''; // Return empty if user is null
   }
 
   // Save updates for an existing medication
@@ -87,7 +91,7 @@ class MedicationInfoProvider extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      await medicationDoc.set(medicationData);
+      await medicationDoc.update(medicationData);
       await loadFromFirebase(); // Reload to update the local list
     }
   }
@@ -97,4 +101,25 @@ class MedicationInfoProvider extends ChangeNotifier {
     medications.clear();
     notifyListeners();
   }
+
+  // Method to delete a medication
+  Future<void> deleteMedication(String id) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('medications')
+            .doc(id)
+            .delete();
+        medications.removeWhere((medication) => medication['id'] == id);
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error deleting medication: $e');
+      throw Exception('Failed to delete medication');
+    }
+  }
+
 }

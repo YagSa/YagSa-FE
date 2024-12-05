@@ -5,9 +5,9 @@ import 'information_provider.dart';
 
 class EditAllInfoPage extends StatefulWidget {
   final bool isNewMedication;
-  final int? medicationIndex;
+  final String? medicationId;
 
-  const EditAllInfoPage({Key? key, required this.isNewMedication, this.medicationIndex}) : super(key: key);
+  const EditAllInfoPage({Key? key, required this.isNewMedication, this.medicationId}) : super(key: key);
 
   @override
   _EditAllInfoPageState createState() => _EditAllInfoPageState();
@@ -28,8 +28,8 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
       nameController = TextEditingController();
       usageDurationController = TextEditingController();
       additionalInfoController = TextEditingController();
-    } else if (widget.medicationIndex != null) {
-      final medication = provider.medications[widget.medicationIndex!];
+    } else if (widget.medicationId != null) {
+      final medication = provider.medications.firstWhere((med) => med['id'] == widget.medicationId);
       nameController = TextEditingController(text: medication['name']);
       usageDurationController = TextEditingController(text: medication['usageDuration']);
       additionalInfoController = TextEditingController(text: medication['additionalInfo']);
@@ -55,6 +55,7 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           widget.isNewMedication ? '새 약물 추가' : '약물 정보 편집',
           style: const TextStyle(
@@ -107,15 +108,14 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
                   final provider = Provider.of<MedicationInfoProvider>(context, listen: false);
 
                   if (widget.isNewMedication) {
-                    await provider.saveNewToFirebase(
+                    String medicationId = await provider.saveNewToFirebase(
                       nameController.text,
                       usageDurationController.text,
                       additionalInfoController.text,
                     );
-                  } else if (widget.medicationIndex != null) {
-                    final documentId = provider.medications[widget.medicationIndex!]['id'];
+                  } else if (widget.medicationId != null) {
                     await provider.saveUpdateToFirebase(
-                      documentId,
+                      widget.medicationId!,
                       nameController.text,
                       usageDurationController.text,
                       additionalInfoController.text,

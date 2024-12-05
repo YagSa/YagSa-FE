@@ -34,9 +34,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
-    Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
-        AlarmPermissions.checkNotificationPermission();
+    _loadData();
+
+    AlarmPermissions.checkNotificationPermission();
     if (Alarm.android) {
       AlarmPermissions.checkAndroidScheduleExactAlarmPermission();
     }
@@ -45,6 +45,20 @@ class _HomePageState extends State<HomePage> {
     updateSubscription ??= Alarm.updateStream.stream.listen((_) {
       unawaited(loadAlarms());
     });
+    // Load medication and schedule data from Firebase when the HomePage is initialized
+
+  }
+
+  // Load data with error handling
+  Future<void> _loadData() async {
+    try {
+      await Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+      await Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase(user?.uid ?? '');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Load ')),
+      );
+    }
   }
 
   Future<void> loadAlarms() async {
@@ -119,6 +133,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        automaticallyImplyLeading: false,
         title: const Text(
           '약, 사',
           style: TextStyle(
@@ -133,7 +148,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               FirebaseAuth.instance.signOut();
               Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
-              Provider.of<ScheduleProvider>(context, listen: false).schedules = [];
+              Provider.of<ScheduleProvider>(context, listen: false).clearData();
               Navigator.pushReplacement(
                   context, MaterialPageRoute(builder: (context) => SplashScreen()));
             },
@@ -198,49 +213,71 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 16),
             Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '관리 약물 목록',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MedicationInfoPage(isNewMedication: true),
-                        ),
-                      );
-                    },
-                  ),
-                ]),
-
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '관리 약물 목록',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditAllInfoPage(isNewMedication: true),
+                      ),
+                    );
+                    await Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+                  },
+                ),
+              ],
+            ),
+            const Divider(thickness: 1, color: Colors.grey), // Divider line
+            const SizedBox(height: 8),
             const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                itemCount: medicationProvider.medications.length,
-                itemBuilder: (context, index) {
-                  final medication = medicationProvider.medications[index];
-                  return buildMedicationTile(
-                    medication['name'],
-                    medication['usageDuration'],
-                    medication['additionalInfo'],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MedicationInfoPage(
-                            isNewMedication: false,
-                            medicationIndex: index,
+              child: medicationProvider.medications.isEmpty
+                  ? const Center(child: Text("등록된 약물이 없습니다.")) // No medications found
+                  : ListView.builder(
+                      itemCount: medicationProvider.medications.length,
+                      itemBuilder: (context, index) {
+                        final medication = medicationProvider.medications[index];
+                        return Dismissible(
+                          key: Key(medication['id']), // Unique key for each schedule
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: const Icon(Icons.delete, color: Colors.white),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (direction) {
+                            Provider.of<MedicationInfoProvider>(context, listen: false).deleteMedication(medication['id']);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                               const SnackBar(content: Text('약물이 삭제되었습니다')),
+                               );
+                          },
+                          child: buildMedicationTile(
+                            medication['name'],
+                            medication['usageDuration'],
+                            medication['additionalInfo'],
+                            onTap: () async {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MedicationInfoPage(
+                                  isNewMedication: false,
+                                  medicationId: medication['id'],
+                                ),
+                               ),
+                              );
+                            await Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+                           },
+                          ),
+                        );
+                  },
               ),
             ),
           ],
@@ -258,7 +295,6 @@ class _HomePageState extends State<HomePage> {
           time,
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(description),
         trailing: Switch(
           value: isActive,
           onChanged: (value) {
@@ -321,7 +357,8 @@ Widget buildCustomButton(BuildContext context) {
           child: IconButton(
             icon: const Icon(Icons.videocam, color: Colors.white, size: 32),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+              //TODO
+              //Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
             },
           ),
         ),

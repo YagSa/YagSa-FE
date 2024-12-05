@@ -8,9 +8,9 @@ import 'schedule_provider.dart';
 
 class MedicationInfoPage extends StatefulWidget {
   final bool isNewMedication; // Indicates if adding a new medication or editing
-  final int? medicationIndex; // Index of medication for editing, null if new
+  final String? medicationId; // ID of medication for editing, null if new
 
-  const MedicationInfoPage({Key? key, required this.isNewMedication, this.medicationIndex}) : super(key: key);
+  const MedicationInfoPage({Key? key, required this.isNewMedication, this.medicationId}) : super(key: key);
 
   @override
   _MedicationInfoPageState createState() => _MedicationInfoPageState();
@@ -22,7 +22,9 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
   @override
   void initState() {
     super.initState();
-    Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase();
+    if (widget.medicationId != null) {
+      Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase(widget.medicationId!);
+    }
   }
 
   @override
@@ -32,8 +34,8 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
 
     // Check if editing an existing medication
     Map<String, dynamic>? medication;
-    if (!widget.isNewMedication && widget.medicationIndex != null) {
-      medication = medicationProvider.medications[widget.medicationIndex!];
+    if (!widget.isNewMedication && widget.medicationId != null) {
+      medication = medicationProvider.medications.firstWhere((med) => med['id'] == widget.medicationId);
     }
 
     return Scaffold(
@@ -66,7 +68,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                       MaterialPageRoute(
                         builder: (context) => EditAllInfoPage(
                           isNewMedication: widget.isNewMedication,
-                          medicationIndex: widget.medicationIndex,
+                          medicationId: widget.medicationId,
                         ),
                       ),
                     );
@@ -100,15 +102,16 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                     final newSchedule = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const NotificationSchedulePage(),
+                        builder: (context) => NotificationSchedulePage(medicationId: widget.medicationId ?? ''),
                       ),
                     );
-                    if (newSchedule != null) {
-                      Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
-                        newSchedule.dayOfWeek,
-                        newSchedule.time.format(context),
+                    if (newSchedule != null && widget.medicationId != null) {
+                      await Provider.of<ScheduleProvider>(context, listen: false).addSchedule(
+                        widget.medicationId!,
+                        newSchedule.time,
                         newSchedule.isEnabled,
                       );
+
                     }
                   },
                 ),
@@ -148,7 +151,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "${schedule['dayOfWeek']} - ${schedule['time']}", // Display day and time
+                            "${schedule['time']}", // Display day and time
                             style: const TextStyle(
                               fontSize: 18.0,
                               fontWeight: FontWeight.bold,

@@ -5,7 +5,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:alarm/alarm.dart';
+import 'package:provider/provider.dart';
+
 import 'home.dart';
+import 'schedule_provider.dart';
 
 class AlarmScreen extends StatefulWidget {
   const AlarmScreen({this.alarmSettings, super.key}); // nullable로 변경
@@ -233,10 +236,12 @@ class _AlarmScreenState extends State<AlarmScreen> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 if (widget.alarmSettings != null) {
                                   _stopAlarm(widget.alarmSettings!.id);
                                 }
+                                await Provider.of<ScheduleProvider>(context, listen: false)
+                                    .loadAllSchedulesFromFirebase();
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(

@@ -59,8 +59,8 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
         title: Text(
           widget.isNewMedication ? '새 약물 추가' : '약물 정보 편집',
           style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontSize: 27,
+            fontFamily: 'Tenada',
             color: Colors.white,
           ),
         ),

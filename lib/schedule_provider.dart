@@ -36,6 +36,30 @@ class ScheduleProvider extends ChangeNotifier {
     print('Alarm set: $title at $dateTime');
   }
 
+  Future<void> loadAllSchedulesFromFirebase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final scheduleCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('schedules'); // Remove filtering condition
+
+      final querySnapshot = await scheduleCollection.get();
+
+      schedules = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'time': data['time'],
+          'isEnabled': data['isEnabled'],
+          'medicationId': data['medicationId'], // Keep medicationId field
+        };
+      }).toList();
+
+      notifyListeners();
+    }
+  }
+
   // load schedule data from Firebase
   Future<void> loadSchedulesFromFirebase(String medicationId) async {
     final user = FirebaseAuth.instance.currentUser;

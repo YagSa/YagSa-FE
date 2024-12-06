@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:provider/provider.dart';
+
+import 'schedule_provider.dart';
 import 'home.dart';
 import 'calendar.dart';
 
@@ -21,17 +24,19 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '약,사',
+          '복용 기록 조회',
           style: TextStyle(
             fontFamily: 'Tenada',
-            fontSize: 35,
+            fontSize: 30,
             color: Colors.white,
           ),
         ),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
         leading: IconButton(
-          onPressed: () {
+          onPressed: () async {
+            await Provider.of<ScheduleProvider>(context, listen: false)
+                .loadAllSchedulesFromFirebase();
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => HomePage()));
           },

@@ -51,10 +51,10 @@ class _HomePageState extends State<HomePage> {
   // Load data with error handling
   Future<void> _loadData() async {
     try {
+      await Provider.of<ScheduleProvider>(context, listen: false)
+          .loadAllSchedulesFromFirebase();
       await Provider.of<MedicationInfoProvider>(context, listen: false)
           .loadFromFirebase();
-      await Provider.of<ScheduleProvider>(context, listen: false)
-          .loadSchedulesFromFirebase(user?.uid ?? '');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Load ')),
@@ -171,10 +171,14 @@ class _HomePageState extends State<HomePage> {
               '금일 복용 일정',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 10),
             const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
+              child: scheduleProvider.schedules.isEmpty
+              ? const Center(
+                  child: Text("등록된 약물이 없습니다."))
+              : ListView.builder(
                 itemCount: scheduleProvider.schedules.length,
                 itemBuilder: (context, index) {
                   final schedule = scheduleProvider.schedules[index];

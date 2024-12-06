@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import 'information_provider.dart';
+import 'schedule_provider.dart';
+import 'home.dart';
 
 class EditAllInfoPage extends StatefulWidget {
   final bool isNewMedication;
@@ -65,6 +68,19 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
           ),
         ),
         backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
+        leading: IconButton(
+          onPressed: () async {
+            await Provider.of<ScheduleProvider>(context, listen: false)
+                .loadAllSchedulesFromFirebase();
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => HomePage()));
+          },
+          icon: const Icon(Icons.navigate_before),
+        ),
+        iconTheme: const IconThemeData(
+          color: Color.fromRGBO(226, 241, 231, 1),
+          size: 40,
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

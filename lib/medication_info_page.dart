@@ -200,6 +200,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                                       listen: false)
                                   .toggleSchedule(schedule['id'], value);
                             },
+                            activeTrackColor: Color(0xFF243642),
                           ),
                         ],
                       ),

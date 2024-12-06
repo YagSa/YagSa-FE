@@ -191,6 +191,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 Switch(
                   value: loopAudio,
                   onChanged: (value) => setState(() => loopAudio = value),
+                  activeTrackColor: Color(0xFF243642),
                 ),
               ],
             ),
@@ -204,6 +205,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                 Switch(
                   value: vibrate,
                   onChanged: (value) => setState(() => vibrate = value),
+                  activeTrackColor: Color(0xFF243642),
                 ),
               ],
             ),
@@ -253,6 +255,7 @@ class _ExampleAlarmEditScreenState extends State<ExampleAlarmEditScreen> {
                   value: volume != null,
                   onChanged: (value) =>
                       setState(() => volume = value ? 0.5 : null),
+                  activeTrackColor: Color(0xFF243642),
                 ),
               ],
             ),

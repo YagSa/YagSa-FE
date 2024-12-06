@@ -338,6 +338,7 @@ class _HomePageState extends State<HomePage> {
               print('Error parsing time: $e');
             }
           },
+          activeTrackColor: Color(0xFF243642),
         ),
       ),
     );

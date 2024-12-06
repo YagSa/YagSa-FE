@@ -10,12 +10,9 @@ import 'login.dart';
 import 'medication_info_page.dart';
 import 'information_provider.dart';
 import 'schedule_provider.dart';
-import 'CalendarPage.dart';
+import 'calendar_page.dart';
 import 'alarm.dart';
 import 'permission.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'alarm_test.dart';
-import 'notification_schedule_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,9 +28,15 @@ class _HomePageState extends State<HomePage> {
   static StreamSubscription<AlarmSettings>? ringSubscription;
   static StreamSubscription<int>? updateSubscription;
 
+  bool _isloading = false;
+
   @override
   void initState() {
     super.initState();
+
+    setState(() {
+      _isloading = true;
+    });
     _loadData();
 
     AlarmPermissions.checkNotificationPermission();
@@ -55,6 +58,9 @@ class _HomePageState extends State<HomePage> {
           .loadAllSchedulesFromFirebase();
       await Provider.of<MedicationInfoProvider>(context, listen: false)
           .loadFromFirebase();
+      setState(() {
+        _isloading = true;
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Load ')),
@@ -169,59 +175,68 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 16),
             const Text(
               '금일 복용 일정',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontFamily: 'Tenada',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 8),
             Expanded(
               child: scheduleProvider.schedules.isEmpty
-              ? const Center(
-                  child: Text("등록된 약물이 없습니다."))
-              : ListView.builder(
-                itemCount: scheduleProvider.schedules.length,
-                itemBuilder: (context, index) {
-                  final schedule = scheduleProvider.schedules[index];
-                  return Dismissible(
-                    key: Key(schedule['id']),
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: const Icon(Icons.delete, color: Colors.white),
-                    ),
-                    direction: DismissDirection.endToStart,
-                    onDismissed: (direction) async {
-                      await _stopAlarm(schedule['id']);
-                      scheduleProvider.deleteSchedule(schedule['id']);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
-                      );
-                    },
-                    child: buildAlarmTile(
-                      schedule['time'],
-                      //(String time, String name, String additionalInfo, bool isActive, Function(bool) onChanged)
-                      medicationProvider.medications.firstWhere((item) =>
-                          item['id'] == schedule['medicationId'])['name'],
-                      medicationProvider.medications.firstWhere((item) =>
-                        item['id'] == schedule['medicationId'])['additionalInfo'],
-                      schedule['isEnabled'],
-                      (value) {
-                        setState(() {
-                          try {
-                            DateTime alarmTime = parseTime(schedule['time']);
-                            print('Parsed alarm time: $alarmTime');
-                            scheduleProvider.toggleSchedule(
-                                schedule['id'], value);
-                          } catch (e) {
-                            print('Error parsing time: $e');
-                          }
-                        });
+                  ? Center(
+                      child: _isloading
+                          ? CircularProgressIndicator(color: Color(0xFF688F7E))
+                          : Text("등록된 약물이 없습니다."))
+                  : ListView.builder(
+                      itemCount: scheduleProvider.schedules.length,
+                      itemBuilder: (context, index) {
+                        final schedule = scheduleProvider.schedules[index];
+                        return Dismissible(
+                          key: Key(schedule['id']),
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child:
+                                const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (direction) async {
+                            await _stopAlarm(schedule['id']);
+                            scheduleProvider.deleteSchedule(schedule['id']);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
+                            );
+                          },
+                          child: buildAlarmTile(
+                            schedule['time'],
+                            //(String time, String name, String additionalInfo, bool isActive, Function(bool) onChanged)
+                            medicationProvider.medications.firstWhere((item) =>
+                                item['id'] == schedule['medicationId'])['name'],
+                            medicationProvider.medications.firstWhere((item) =>
+                                item['id'] ==
+                                schedule['medicationId'])['additionalInfo'],
+                            schedule['isEnabled'],
+                            (value) {
+                              setState(() {
+                                try {
+                                  DateTime alarmTime =
+                                      parseTime(schedule['time']);
+                                  print('Parsed alarm time: $alarmTime');
+                                  scheduleProvider.toggleSchedule(
+                                      schedule['id'], value);
+                                } catch (e) {
+                                  print('Error parsing time: $e');
+                                }
+                              });
+                            },
+                          ),
+                        );
                       },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -229,7 +244,10 @@ class _HomePageState extends State<HomePage> {
               children: [
                 const Text(
                   '관리 약물 목록',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontFamily: 'Tenada',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
@@ -252,8 +270,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8),
             Expanded(
               child: medicationProvider.medications.isEmpty
-                  ? const Center(
-                      child: Text("등록된 약물이 없습니다.")) // No medications found
+                  ? Center(
+                      child: _isloading
+                          ? CircularProgressIndicator(color: Color(0xFF688F7E))
+                          : Text("등록된 일정이 없습니다."))
                   : ListView.builder(
                       itemCount: medicationProvider.medications.length,
                       itemBuilder: (context, index) {
@@ -318,6 +338,7 @@ class _HomePageState extends State<HomePage> {
           time,
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
         ),
+        subtitle: Text("$title / $description"),
         trailing: Switch(
           value: isActive,
           onChanged: (value) {
@@ -384,7 +405,8 @@ Widget buildCustomButton(BuildContext context) {
             icon: const Icon(Icons.videocam, color: Colors.white, size: 32),
             onPressed: () {
               //TODO
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => AlarmScreen()));
             },
           ),
         ),

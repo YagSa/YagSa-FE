@@ -128,7 +128,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
                                 ),
                               )
                             : Container(
-                                width: 280,
+                                width: 270,
                                 child: TextField(
                                   onChanged: (value) {
                                     setState(() {
@@ -168,7 +168,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
                                 ),
                               ) // 알람이 있을 때는 입력 필드 생략
                             : Container(
-                                width: 280,
+                                width: 270,
                                 child: TextField(
                                   onChanged: (value) {
                                     setState(() {

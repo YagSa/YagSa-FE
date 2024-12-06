@@ -106,10 +106,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: _isUploading ? 100 : 120),
+            SizedBox(height: _isUploading ? 70 : 120),
             Image.asset(
               'assets/images/alarm.png',
-              width: 290,
+              width: _isUploading ? 100 : 290,
             ),
             SizedBox(height: 20),
             _isUploading
@@ -218,7 +218,15 @@ class _AlarmScreenState extends State<AlarmScreen> {
                                     key: Key('capture_button'),
                                     onPressed: () {
                                       getImageAndUpload(
-                                          ImageSource.camera, _title, _detail);
+                                          ImageSource.camera,
+                                          widget.alarmSettings == null
+                                              ? _title
+                                              : widget.alarmSettings!
+                                                  .notificationSettings.title,
+                                          widget.alarmSettings == null
+                                              ? _detail
+                                              : widget.alarmSettings!
+                                                  .notificationSettings.body);
                                     },
                                     child: Text(
                                       '촬영하기',
@@ -240,7 +248,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
                                 if (widget.alarmSettings != null) {
                                   _stopAlarm(widget.alarmSettings!.id);
                                 }
-                                await Provider.of<ScheduleProvider>(context, listen: false)
+                                await Provider.of<ScheduleProvider>(context,
+                                        listen: false)
                                     .loadAllSchedulesFromFirebase();
                                 Navigator.push(
                                     context,

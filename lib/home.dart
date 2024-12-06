@@ -91,8 +91,8 @@ class _HomePageState extends State<HomePage> {
       dateTime: dateTime,
       assetAudioPath: 'assets/alarm.MP3',
       notificationSettings: NotificationSettings(
-        title: 'Alarm',
-        body: 'It\'s time for $title!',
+        title: title,
+        body: body,
         stopButton: 'Stop',
         icon: 'app_icon',
       ),

@@ -21,10 +21,11 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '약, 사',
+          '약,사',
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontFamily: 'Tenada',
+            fontSize: 35,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
@@ -78,17 +79,18 @@ class _CalendarPageState extends State<CalendarPage> {
                   child: _medicationHistory.isEmpty
                       ? const Center(child: Text('해당 날짜에 복용 기록이 없습니다.'))
                       : ListView.builder(
-                      itemCount: _medicationHistory.length,
-                      itemBuilder: (context, index) {
-                        final medication = _medicationHistory[index];
-                        return MedicationCard(
-                          time: '${medication['hour'].toString().padLeft(2, '0')}:${medication['minute'].toString().padLeft(2, '0')}',
-                          name: medication['name'] ?? '약 이름 없음',
-                          detail: medication['detail'] ?? '정보 없음',
-                          imagePath: medication['img_path'] ?? '',
-                        );
-                    },
-                  ),
+                          itemCount: _medicationHistory.length,
+                          itemBuilder: (context, index) {
+                            final medication = _medicationHistory[index];
+                            return MedicationCard(
+                              time:
+                                  '${medication['hour'].toString().padLeft(2, '0')}:${medication['minute'].toString().padLeft(2, '0')}',
+                              name: medication['name'] ?? '약 이름 없음',
+                              detail: medication['detail'] ?? '정보 없음',
+                              imagePath: medication['img_path'] ?? '',
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -225,23 +227,23 @@ class _MedicationCardState extends State<MedicationCard> {
               borderRadius: BorderRadius.circular(5),
               child: _imageUrl == null
                   ? const Center(
-                child: CircularProgressIndicator(), // 로딩 표시
-              )
+                      child: CircularProgressIndicator(), // 로딩 표시
+                    )
                   : Image.network(
-                  _imageUrl!,
-                  height: 100,
-                  width: 150,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(
-                      child: CircularProgressIndicator(), // 로딩 애니메이션
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.error); // 로드 실패 시 대체 아이콘
-                  },
-              ),
+                      _imageUrl!,
+                      height: 100,
+                      width: 150,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(), // 로딩 애니메이션
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.error); // 로드 실패 시 대체 아이콘
+                      },
+                    ),
             ),
           ),
         ],

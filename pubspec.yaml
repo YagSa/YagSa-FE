@@ -47,6 +47,7 @@ dependencies:
   firebase_app_check: ^0.3.1+6
   alarm: ^4.1.1
   permission_handler: ^11.3.1
+  flutter_native_splash: ^2.4.3
 
 dev_dependencies:
   flutter_test:
@@ -97,6 +98,12 @@ flutter:
         - asset: assets/fonts/Pretendard-Bold.otf
         - asset: assets/fonts/Pretendard-ExtraBold.otf
           weight: 700
+    - family: Tenada
+      fonts:
+        - asset: assets/fonts/Tenada.ttf
+
+
+
   # fonts:
   #   - family: Schyler
   #     fonts:
@@ -111,3 +118,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#E2F1E7" # 배경색
+  image: assets/images/splash.png # 스플래쉬 이미지
+  android: true
+  ios: true

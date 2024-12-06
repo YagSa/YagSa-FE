@@ -13,9 +13,9 @@ import 'schedule_provider.dart';
 import 'CalendarPage.dart';
 import 'alarm.dart';
 import 'permission.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'alarm_test.dart';
 import 'notification_schedule_page.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -46,14 +46,15 @@ class _HomePageState extends State<HomePage> {
       unawaited(loadAlarms());
     });
     // Load medication and schedule data from Firebase when the HomePage is initialized
-
   }
 
   // Load data with error handling
   Future<void> _loadData() async {
     try {
-      await Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
-      await Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase(user?.uid ?? '');
+      await Provider.of<MedicationInfoProvider>(context, listen: false)
+          .loadFromFirebase();
+      await Provider.of<ScheduleProvider>(context, listen: false)
+          .loadSchedulesFromFirebase(user?.uid ?? '');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Load ')),
@@ -73,8 +74,7 @@ class _HomePageState extends State<HomePage> {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (context) =>
-            AlarmScreen(alarmSettings: alarmSettings),
+        builder: (context) => AlarmScreen(alarmSettings: alarmSettings),
       ),
     );
     unawaited(loadAlarms());
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
     print('Alarm set: $title at $dateTime');
   }
 
-  Future<void> _deleteAlarm(String id) async {
+  Future<void> _stopAlarm(String id) async {
     await Alarm.stop(id.hashCode);
     print('Alarm deleted: $id');
   }
@@ -118,7 +118,11 @@ class _HomePageState extends State<HomePage> {
     final DateFormat format = DateFormat('hh:mm a');
     try {
       DateTime parsedTime = format.parse(time);
-      return DateTime.now().copyWith(hour: parsedTime.hour, minute: parsedTime.minute, second: 0, millisecond: 0);
+      return DateTime.now().copyWith(
+          hour: parsedTime.hour,
+          minute: parsedTime.minute,
+          second: 0,
+          millisecond: 0);
     } catch (e) {
       print('Error parsing time: $e');
       return DateTime.now();
@@ -135,10 +139,10 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         automaticallyImplyLeading: false,
         title: const Text(
-          '약, 사',
+          '약,사',
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontFamily: 'Tenada',
+            fontSize: 35,
             color: Colors.white,
           ),
         ),
@@ -147,10 +151,11 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.logout, color: Colors.white, size: 32),
             onPressed: () {
               FirebaseAuth.instance.signOut();
-              Provider.of<MedicationInfoProvider>(context, listen: false).clearData();
+              Provider.of<MedicationInfoProvider>(context, listen: false)
+                  .clearData();
               Provider.of<ScheduleProvider>(context, listen: false).clearData();
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => SplashScreen()));
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => SplashScreen()));
             },
           ),
         ],
@@ -183,7 +188,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) async {
-                      await _deleteAlarm(schedule['id']);
+                      await _stopAlarm(schedule['id']);
                       scheduleProvider.deleteSchedule(schedule['id']);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
@@ -191,16 +196,19 @@ class _HomePageState extends State<HomePage> {
                     },
                     child: buildAlarmTile(
                       schedule['time'],
-                      //(String time, String title, String description, bool isActive, Function(bool) onChanged)
-                      schedule['dayOfWeek'],
-                      schedule['dayOfWeek'],
+                      //(String time, String name, String additionalInfo, bool isActive, Function(bool) onChanged)
+                      medicationProvider.medications.firstWhere((item) =>
+                          item['id'] == schedule['medicationId'])['name'],
+                      medicationProvider.medications.firstWhere((item) =>
+                        item['id'] == schedule['medicationId'])['additionalInfo'],
                       schedule['isEnabled'],
-                          (value) {
+                      (value) {
                         setState(() {
                           try {
                             DateTime alarmTime = parseTime(schedule['time']);
                             print('Parsed alarm time: $alarmTime');
-                            scheduleProvider.toggleSchedule(schedule['id'], value);
+                            scheduleProvider.toggleSchedule(
+                                schedule['id'], value);
                           } catch (e) {
                             print('Error parsing time: $e');
                           }
@@ -225,39 +233,47 @@ class _HomePageState extends State<HomePage> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EditAllInfoPage(isNewMedication: true),
+                        builder: (context) =>
+                            const EditAllInfoPage(isNewMedication: true),
                       ),
                     );
-                    await Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
+                    await Provider.of<MedicationInfoProvider>(context,
+                            listen: false)
+                        .loadFromFirebase();
                   },
                 ),
               ],
             ),
-            const Divider(thickness: 1, color: Colors.grey), // Divider line
-            const SizedBox(height: 8),
             const Divider(thickness: 1, color: Colors.grey),
             const SizedBox(height: 8),
             Expanded(
               child: medicationProvider.medications.isEmpty
-                  ? const Center(child: Text("등록된 약물이 없습니다.")) // No medications found
+                  ? const Center(
+                      child: Text("등록된 약물이 없습니다.")) // No medications found
                   : ListView.builder(
                       itemCount: medicationProvider.medications.length,
                       itemBuilder: (context, index) {
-                        final medication = medicationProvider.medications[index];
+                        final medication =
+                            medicationProvider.medications[index];
                         return Dismissible(
-                          key: Key(medication['id']), // Unique key for each schedule
+                          key: Key(
+                              medication['id']), // Unique key for each schedule
                           background: Container(
                             color: Colors.red,
                             alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                            child: const Icon(Icons.delete, color: Colors.white),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child:
+                                const Icon(Icons.delete, color: Colors.white),
                           ),
                           direction: DismissDirection.endToStart,
                           onDismissed: (direction) {
-                            Provider.of<MedicationInfoProvider>(context, listen: false).deleteMedication(medication['id']);
+                            Provider.of<MedicationInfoProvider>(context,
+                                    listen: false)
+                                .deleteMedication(medication['id']);
                             ScaffoldMessenger.of(context).showSnackBar(
-                               const SnackBar(content: Text('약물이 삭제되었습니다')),
-                               );
+                              const SnackBar(content: Text('약물이 삭제되었습니다')),
+                            );
                           },
                           child: buildMedicationTile(
                             medication['name'],
@@ -268,17 +284,19 @@ class _HomePageState extends State<HomePage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => MedicationInfoPage(
-                                  isNewMedication: false,
-                                  medicationId: medication['id'],
+                                    isNewMedication: false,
+                                    medicationId: medication['id'],
+                                  ),
                                 ),
-                               ),
                               );
-                            await Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
-                           },
+                              await Provider.of<MedicationInfoProvider>(context,
+                                      listen: false)
+                                  .loadFromFirebase();
+                            },
                           ),
                         );
-                  },
-              ),
+                      },
+                    ),
             ),
           ],
         ),
@@ -288,7 +306,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildAlarmTile(String time, String title, String description, bool isActive, Function(bool) onChanged) {
+  Widget buildAlarmTile(String time, String title, String description,
+      bool isActive, Function(bool) onChanged) {
     return Card(
       child: ListTile(
         title: Text(
@@ -309,7 +328,7 @@ class _HomePageState extends State<HomePage> {
                   body: description,
                 );
               } else {
-                _deleteAlarm(description);
+                _stopAlarm(time);
               }
             } catch (e) {
               print('Error parsing time: $e');
@@ -320,7 +339,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildMedicationTile(String name, String usageDuration, String additionalInfo, {required VoidCallback onTap}) {
+  Widget buildMedicationTile(
+      String name, String usageDuration, String additionalInfo,
+      {required VoidCallback onTap}) {
     return Card(
       child: ListTile(
         title: Text(
@@ -358,7 +379,7 @@ Widget buildCustomButton(BuildContext context) {
             icon: const Icon(Icons.videocam, color: Colors.white, size: 32),
             onPressed: () {
               //TODO
-              //Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AlarmScreen()));
             },
           ),
         ),
@@ -373,9 +394,11 @@ Widget buildCustomButton(BuildContext context) {
         Padding(
           padding: const EdgeInsets.only(right: 15.0),
           child: IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.white, size: 32),
+            icon:
+                const Icon(Icons.calendar_today, color: Colors.white, size: 32),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CalendarPage()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => CalendarPage()));
             },
           ),
         ),

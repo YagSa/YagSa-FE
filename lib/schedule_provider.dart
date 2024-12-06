@@ -2,9 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yagsa/utility.dart';
+import 'package:alarm/alarm.dart';
 
 class ScheduleProvider extends ChangeNotifier {
   List<Map<String, dynamic>> schedules = [];
+
+  Future<void> _setDailyAlarm({
+    required String id,
+    required DateTime dateTime,
+    required String title,
+    required String body,
+  }) async {
+    final alarmSettings = AlarmSettings(
+      id: id.hashCode,
+      dateTime: dateTime,
+      assetAudioPath: 'assets/alarm.MP3',
+      notificationSettings: NotificationSettings(
+        title: 'Alarm',
+        body: 'It\'s time for $title!',
+        stopButton: 'Stop',
+        icon: 'app_icon',
+      ),
+      loopAudio: true,
+      vibrate: true,
+      volume: 0.1,
+      volumeEnforced: true,
+      fadeDuration: 0.0,
+      warningNotificationOnKill: true,
+      androidFullScreenIntent: true,
+    );
+
+    await Alarm.set(alarmSettings: alarmSettings);
+    print('Alarm set: $title at $dateTime');
+  }
 
   // load schedule data from Firebase
   Future<void> loadSchedulesFromFirebase(String medicationId) async {
@@ -15,6 +45,7 @@ class ScheduleProvider extends ChangeNotifier {
           .doc(user.uid)
           .collection('schedules')
           .where('medicationId', isEqualTo: medicationId); // Only load schedules for specific medication
+
 
       final querySnapshot = await scheduleCollection.get();
 

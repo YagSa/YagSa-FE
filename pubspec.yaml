@@ -2,7 +2,7 @@ name: yagsa
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -30,11 +30,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  table_calendar: ^3.0.6
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
+  provider: ^6.1.1
+  intl: ^0.19.0
+
+  image_picker: ^1.1.2
+  firebase_core: ^3.8.0
+  firebase_auth: ^5.3.3
+  cloud_firestore: ^5.5.0
+  firebase_storage: ^12.3.6
+  firebase_app_check: ^0.3.1+6
+  alarm: ^4.1.1
+  permission_handler: ^11.3.1
+  flutter_native_splash: ^2.4.3
+  flutter_launcher_icons: ^0.14.2
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +66,11 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/images/splash.png
+    - assets/images/alarm.png
+    - assets/images/image7.png
+    - assets/alarm.MP3
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -74,6 +93,16 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Bold.otf
+        - asset: assets/fonts/Pretendard-ExtraBold.otf
+          weight: 700
+    - family: Tenada
+      fonts:
+        - asset: assets/fonts/Tenada.ttf
+
   # fonts:
   #   - family: Schyler
   #     fonts:
@@ -88,3 +117,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  android: true
+  ios: true
+  color: "#E2F1E7"
+  image: assets/images/default_splash.png
+  android_12:
+    color: "#E2F1E7"
+    image: assets/images/default_splash.png

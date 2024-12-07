@@ -136,7 +136,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
                                     });
                                   },
                                   style: TextStyle(color: Color(0xFF243642)),
-                                  obscureText: true,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Color(0xFFEEEEEE),
@@ -176,7 +175,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
                                     });
                                   },
                                   style: TextStyle(color: Color(0xFF243642)),
-                                  obscureText: true,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: Color(0xFFEEEEEE),

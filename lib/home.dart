@@ -85,8 +85,6 @@ class _HomePageState extends State<HomePage> {
     unawaited(loadAlarms());
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationInfoProvider>();
@@ -146,66 +144,75 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, index) {
                         final schedule = scheduleProvider.schedules[index];
 
-                        //활성화
-                        if (schedule['isEnabled'] &&
-                            Alarm.getAlarm(schedule['time'].hashCode) == null) {
-                          Provider.of<ScheduleProvider>(context, listen: false)
-                              .setDailyAlarm(
-                            id: schedule['time'],
-                            dateTime: schedule['time'],
-                            title: medicationProvider.medications.firstWhere(
-                                (item) =>
-                                    item['id'] ==
-                                    schedule['medicationId'])['name'],
-                            body: medicationProvider.medications.firstWhere(
-                                (item) =>
-                                    item['id'] ==
-                                    schedule['medicationId'])['additionalInfo'],
+                        if (!medicationProvider.medications.any(
+                            (item) => item['id'] == schedule['medicationId'])) {
+                          return SizedBox(height: 0);
+                        }else {
+                          //활성화
+                          if (schedule['isEnabled'] &&
+                              Alarm.getAlarm(schedule['time'].hashCode) ==
+                                  null) {
+                            Provider.of<ScheduleProvider>(
+                                context, listen: false)
+                                .setDailyAlarm(
+                              id: schedule['time'],
+                              dateTime: schedule['time'],
+                              title: medicationProvider.medications.firstWhere(
+                                      (item) =>
+                                  item['id'] ==
+                                      schedule['medicationId'])['name'],
+                              body: medicationProvider.medications.firstWhere(
+                                      (item) =>
+                                  item['id'] ==
+                                      schedule['medicationId'])['additionalInfo'],
+                            );
+                          }
+
+                          return Dismissible(
+                            key: Key(schedule['id']),
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 20.0),
+                              child:
+                              const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) async {
+                              await Provider.of<ScheduleProvider>(context,
+                                  listen: false)
+                                  .stopAlarm(schedule['id']);
+                              scheduleProvider.deleteSchedule(
+                                  schedule['id'], true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
+                              );
+                            },
+                            child: buildAlarmTile(
+                              schedule['time'],
+                              //(String time, String name, String additionalInfo, bool isActive, Function(bool) onChanged)
+                              medicationProvider.medications.firstWhere((
+                                  item) =>
+                              item['id'] == schedule['medicationId'])['name'],
+                              medicationProvider.medications.firstWhere((
+                                  item) =>
+                              item['id'] ==
+                                  schedule['medicationId'])['additionalInfo'],
+                              schedule['isEnabled'],
+                                  (value) {
+                                setState(() {
+                                  try {
+                                    scheduleProvider.toggleSchedule(
+                                        schedule['id'], value, true);
+                                  } catch (e) {
+                                    print('Error parsing time: $e');
+                                  }
+                                });
+                              },
+                            ),
                           );
                         }
-
-                        return Dismissible(
-                          key: Key(schedule['id']),
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
-                            child:
-                                const Icon(Icons.delete, color: Colors.white),
-                          ),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) async {
-                            await Provider.of<ScheduleProvider>(context,
-                                    listen: false)
-                                .stopAlarm(schedule['id']);
-                            scheduleProvider.deleteSchedule(
-                                schedule['id'], true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
-                            );
-                          },
-                          child: buildAlarmTile(
-                            schedule['time'],
-                            //(String time, String name, String additionalInfo, bool isActive, Function(bool) onChanged)
-                            medicationProvider.medications.firstWhere((item) =>
-                                item['id'] == schedule['medicationId'])['name'],
-                            medicationProvider.medications.firstWhere((item) =>
-                                item['id'] ==
-                                schedule['medicationId'])['additionalInfo'],
-                            schedule['isEnabled'],
-                            (value) {
-                              setState(() {
-                                try {
-                                  scheduleProvider.toggleSchedule(
-                                      schedule['id'], value, true);
-                                } catch (e) {
-                                  print('Error parsing time: $e');
-                                }
-                              });
-                            },
-                          ),
-                        );
                       },
                     ),
             ),

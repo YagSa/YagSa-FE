@@ -42,7 +42,13 @@ dependencies:
   image_picker: ^1.1.2
   firebase_core: ^3.8.0
   firebase_auth: ^5.3.3
-
+  cloud_firestore: ^5.5.0
+  firebase_storage: ^12.3.6
+  firebase_app_check: ^0.3.1+6
+  alarm: ^4.1.1
+  permission_handler: ^11.3.1
+  flutter_native_splash: ^2.4.3
+  flutter_launcher_icons: ^0.14.2
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +70,7 @@ flutter:
     - assets/images/splash.png
     - assets/images/alarm.png
     - assets/images/image7.png
+    - assets/alarm.MP3
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
@@ -92,6 +99,10 @@ flutter:
         - asset: assets/fonts/Pretendard-Bold.otf
         - asset: assets/fonts/Pretendard-ExtraBold.otf
           weight: 700
+    - family: Tenada
+      fonts:
+        - asset: assets/fonts/Tenada.ttf
+
   # fonts:
   #   - family: Schyler
   #     fonts:
@@ -106,3 +117,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  android: true
+  ios: true
+  color: "#E2F1E7"
+  image: assets/images/default_splash.png
+  android_12:
+    color: "#E2F1E7"
+    image: assets/images/default_splash.png

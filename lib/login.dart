@@ -32,12 +32,16 @@ class _SplashScreenState extends State<SplashScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(height: 30),
             Text(
               '약,사',
-              style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold, color: Color(0xFF629584)),
+              style: TextStyle(
+                  fontFamily: 'Tenada',
+                  fontSize: 60,
+                  color: Color(0xFF629584)),
             ),
             SizedBox(
-              width: 250,
+              width: 280,
               child: Divider(
                 color: Color(0xFF629584),
                 thickness: 2,
@@ -95,29 +99,23 @@ class _LoginPageState extends State<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 100),
+              SizedBox(height: 60),
               Text(
                 '약,사',
-                style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold, color: Color(0xFFEEEEEE)),
+                style: TextStyle(
+                  fontFamily: 'Tenada',
+                    fontSize: 70,
+                    color: Color(0xFFEEEEEE)),
               ),
-              SizedBox(
-                width: 250,
-                child: Divider(
-                  color: Color(0xFFEEEEEE),
-                  thickness: 2,
-                  height: 0,
-                ),
-              ),
-              SizedBox(height: 20),
               Container(
-                width: 250,
+                width: 280,
                 child: TextField(
                   controller: _emailController,
                   style: TextStyle(color: Color(0xFF243642)),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Color(0xFFEEEEEE),
-                    labelText: 'Email',
+                    labelText: '이메일',
                     labelStyle: TextStyle(color: Color(0xFF243642)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -135,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 10),
               Container(
-                width: 250,
+                width: 280,
                 child: TextField(
                   controller: _passwordController,
                   style: TextStyle(color: Color(0xFF243642)),
@@ -143,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Color(0xFFEEEEEE),
-                    labelText: 'Password',
+                    labelText: '비밀번호',
                     labelStyle: TextStyle(color: Color(0xFF243642)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -165,40 +163,45 @@ class _LoginPageState extends State<LoginPage> {
                   try {
                     //print('이메일: ${_emailController.text}');
                     //print('비밀번호: ${_passwordController.text}');
-                    final currentUser = await _authentication.signInWithEmailAndPassword(email: _emailController.text, password: _passwordController.text);
+                    final currentUser =
+                        await _authentication.signInWithEmailAndPassword(
+                            email: _emailController.text,
+                            password: _passwordController.text);
                     if (currentUser.user != null) {
                       _emailController.clear();
                       _passwordController.clear();
                       if (!mounted) return;
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => HomePage()));
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => HomePage()));
                     }
                   } catch (e) {
                     print(e);
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(250, 50),
+                  minimumSize: Size(280, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                     side: BorderSide(
                       color: Color(0xFF243642), // 테두리 색상
                       width: 2, // 테두리 두께
-                    ),// 테두리 두께
+                    ), // 테두리 두께
                   ),
                   backgroundColor: Color(0xFF243642),
                 ),
                 child: Text(
-                  'Sign in',
-                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
+                  '로그인',
+                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 19),
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignupPage()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SignupPage()));
                 },
                 style: ElevatedButton.styleFrom(
-                  minimumSize: Size(250, 50),
+                  minimumSize: Size(280, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                     side: BorderSide(
@@ -209,8 +212,8 @@ class _LoginPageState extends State<LoginPage> {
                   backgroundColor: Color(0xFF629584),
                 ),
                 child: Text(
-                  'Sign up',
-                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 20),
+                  '회원가입',
+                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 19),
                 ),
               ),
             ],

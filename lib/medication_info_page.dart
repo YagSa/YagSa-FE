@@ -48,9 +48,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
       appBar: AppBar(
         title: const Text("약물 정보",
             style: TextStyle(
-                fontFamily: 'Tenada',
-                fontSize: 28,
-                color: Colors.white)),
+                fontFamily: 'Tenada', fontSize: 28, color: Colors.white)),
         centerTitle: true,
         backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
         leading: IconButton(
@@ -134,17 +132,20 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => NotificationSchedulePage(
-                            medicationId: widget.medicationId ?? ''),
+                            medicationId: widget.medicationId ?? '',
+                            medicationTitle : medication?['name'] ?? '',
+                            medicationBody: medication?['additionalInfo'] ?? ''),
                       ),
                     );
                     if (newSchedule != null && widget.medicationId != null) {
                       await Provider.of<ScheduleProvider>(context,
                               listen: false)
                           .addSchedule(
-                        widget.medicationId!,
-                        newSchedule.time,
-                        newSchedule.isEnabled,
-                      );
+                              widget.medicationId!,
+                              newSchedule.time,
+                              newSchedule.isEnabled,
+                              medication?['name'] ?? '',
+                              medication?['additionalInfo'] ?? '');
                     }
                   },
                 ),

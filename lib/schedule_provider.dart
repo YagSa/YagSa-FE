@@ -3,19 +3,49 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yagsa/utility.dart';
 import 'package:alarm/alarm.dart';
+import 'package:intl/intl.dart';
 
 class ScheduleProvider extends ChangeNotifier {
   List<Map<String, dynamic>> schedules = [];
 
+  DateTime parseTime(String time) {
+    final DateFormat format = DateFormat('hh:mm a');
+    try {
+      DateTime parsedTime = DateTime.now().copyWith(
+        hour: format.parse(time).hour,
+        minute: format.parse(time).minute,
+        second: 0,
+        millisecond: 0,
+      );
+      DateTime now = DateTime.now();
+
+      if (parsedTime.isBefore(now)) {
+        now = now.add(Duration(days: 1));
+      }
+
+      print('Parsing time: $now , $parsedTime');
+
+      return now.copyWith(
+        hour: parsedTime.hour,
+        minute: parsedTime.minute,
+        second: 0,
+        millisecond: 0,
+      );
+    } catch (e) {
+      print('Error parsing time: $e');
+      return DateTime.now();
+    }
+  }
+
   Future<void> setDailyAlarm({
     required String id,
-    required DateTime dateTime,
+    required String dateTime,
     required String title,
     required String body,
   }) async {
     final alarmSettings = AlarmSettings(
       id: id.hashCode,
-      dateTime: dateTime,
+      dateTime: parseTime(dateTime),
       assetAudioPath: 'assets/alarm.MP3',
       notificationSettings: NotificationSettings(
         title: title,
@@ -94,8 +124,8 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   // add new schedule data to Firestore and update
-  Future<void> addSchedule(
-      String medicationId, String time, bool isEnabled) async {
+  Future<void> addSchedule(String medicationId, String time, bool isEnabled,
+      String title, String body) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentReference userDoc =
@@ -119,6 +149,13 @@ class ScheduleProvider extends ChangeNotifier {
 
         await userDoc.collection('schedules').add(newSchedule);
         await loadSchedulesFromFirebase(medicationId);
+
+        setDailyAlarm(
+          id: time,
+          dateTime: time,
+          title: title,
+          body: body,
+        );
       } else {
         print("Schedule already exists!");
       }

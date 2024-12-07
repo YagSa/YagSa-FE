@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:alarm/alarm.dart';
-import 'package:intl/intl.dart';
 import 'dart:async';
 
 import 'edit_page.dart';
@@ -86,34 +85,8 @@ class _HomePageState extends State<HomePage> {
     unawaited(loadAlarms());
   }
 
-  DateTime parseTime(String time) {
-    final DateFormat format = DateFormat('hh:mm a');
-    try {
-      DateTime parsedTime = DateTime.now().copyWith(
-        hour: format.parse(time).hour,
-        minute: format.parse(time).minute,
-        second: 0,
-        millisecond: 0,
-      );
-      DateTime now = DateTime.now();
 
-      if (parsedTime.isBefore(now)) {
-        now = now.add(Duration(days: 1));
-      }
 
-      print('Parsing time: $now , $parsedTime');
-
-      return now.copyWith(
-        hour: parsedTime.hour,
-        minute: parsedTime.minute,
-        second: 0,
-        millisecond: 0,
-      );
-    } catch (e) {
-      print('Error parsing time: $e');
-      return DateTime.now();
-    }
-  }
   @override
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationInfoProvider>();
@@ -172,6 +145,25 @@ class _HomePageState extends State<HomePage> {
                       itemCount: scheduleProvider.schedules.length,
                       itemBuilder: (context, index) {
                         final schedule = scheduleProvider.schedules[index];
+
+                        //활성화
+                        if (schedule['isEnabled'] &&
+                            Alarm.getAlarm(schedule['time'].hashCode) == null) {
+                          Provider.of<ScheduleProvider>(context, listen: false)
+                              .setDailyAlarm(
+                            id: schedule['time'],
+                            dateTime: schedule['time'],
+                            title: medicationProvider.medications.firstWhere(
+                                (item) =>
+                                    item['id'] ==
+                                    schedule['medicationId'])['name'],
+                            body: medicationProvider.medications.firstWhere(
+                                (item) =>
+                                    item['id'] ==
+                                    schedule['medicationId'])['additionalInfo'],
+                          );
+                        }
+
                         return Dismissible(
                           key: Key(schedule['id']),
                           background: Container(
@@ -205,9 +197,6 @@ class _HomePageState extends State<HomePage> {
                             (value) {
                               setState(() {
                                 try {
-                                  DateTime alarmTime =
-                                      parseTime(schedule['time']);
-                                  print('Parsed alarm time: $alarmTime');
                                   scheduleProvider.toggleSchedule(
                                       schedule['id'], value, true);
                                 } catch (e) {
@@ -326,12 +315,11 @@ class _HomePageState extends State<HomePage> {
           onChanged: (value) {
             onChanged(value);
             try {
-              DateTime alarmTime = parseTime(time);
               if (value) {
                 Provider.of<ScheduleProvider>(context, listen: false)
                     .setDailyAlarm(
                   id: time,
-                  dateTime: alarmTime,
+                  dateTime: time,
                   title: title,
                   body: description,
                 );

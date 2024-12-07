@@ -4,9 +4,18 @@ import 'package:provider/provider.dart';
 import 'schedule_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'home.dart';
+
 class NotificationSchedulePage extends StatefulWidget {
   final String medicationId;
-  const NotificationSchedulePage({super.key, required this.medicationId});
+  final String medicationTitle;
+  final String medicationBody;
+
+  const NotificationSchedulePage(
+      {super.key,
+      required this.medicationId,
+      required this.medicationTitle,
+      required this.medicationBody});
 
   @override
   _NotificationSchedulePageState createState() =>
@@ -64,6 +73,17 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
           ),
         ),
         backgroundColor: const Color.fromRGBO(98, 149, 132, 1),
+        leading: IconButton(
+          onPressed: () async {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => HomePage()));
+          },
+          icon: const Icon(Icons.navigate_before),
+        ),
+        iconTheme: const IconThemeData(
+          color: Color.fromRGBO(226, 241, 231, 1),
+          size: 40,
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -112,10 +132,13 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
                             widget.medicationId, // Pass the medicationId here
                             formatTimeOfDay(selectedTime),
                             true,
+                            widget.medicationTitle,
+                            widget.medicationBody,
                           );
                           await Provider.of<ScheduleProvider>(context,
                                   listen: false)
                               .loadSchedulesFromFirebase(widget.medicationId);
+
                           Navigator.pop(context, schedule);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(

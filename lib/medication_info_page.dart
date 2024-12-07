@@ -79,6 +79,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                 const Text(
                   "기본 정보",
                   style: TextStyle(
+                    fontFamily: 'Tenada',
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                   ),
@@ -121,6 +122,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                 const Text(
                   "금일 복용 일정",
                   style: TextStyle(
+                    fontFamily: 'Tenada',
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                   ),
@@ -166,7 +168,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                     direction: DismissDirection.endToStart,
                     onDismissed: (direction) {
                       Provider.of<ScheduleProvider>(context, listen: false)
-                          .deleteSchedule(schedule['id']);
+                          .deleteSchedule(schedule['id'], false);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text(
@@ -198,7 +200,7 @@ class _MedicationInfoPageState extends State<MedicationInfoPage> {
                             onChanged: (bool value) {
                               Provider.of<ScheduleProvider>(context,
                                       listen: false)
-                                  .toggleSchedule(schedule['id'], value);
+                                  .toggleSchedule(schedule['id'], value, false);
                             },
                             activeTrackColor: Color(0xFF243642),
                           ),

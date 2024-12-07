@@ -10,7 +10,9 @@ class EditAllInfoPage extends StatefulWidget {
   final bool isNewMedication;
   final String? medicationId;
 
-  const EditAllInfoPage({Key? key, required this.isNewMedication, this.medicationId}) : super(key: key);
+  const EditAllInfoPage(
+      {Key? key, required this.isNewMedication, this.medicationId})
+      : super(key: key);
 
   @override
   _EditAllInfoPageState createState() => _EditAllInfoPageState();
@@ -25,17 +27,21 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
   @override
   void initState() {
     super.initState();
-    final provider = Provider.of<MedicationInfoProvider>(context, listen: false);
+    final provider =
+        Provider.of<MedicationInfoProvider>(context, listen: false);
 
     if (widget.isNewMedication) {
       nameController = TextEditingController();
       usageDurationController = TextEditingController();
       additionalInfoController = TextEditingController();
     } else if (widget.medicationId != null) {
-      final medication = provider.medications.firstWhere((med) => med['id'] == widget.medicationId);
+      final medication = provider.medications
+          .firstWhere((med) => med['id'] == widget.medicationId);
       nameController = TextEditingController(text: medication['name']);
-      usageDurationController = TextEditingController(text: medication['usageDuration']);
-      additionalInfoController = TextEditingController(text: medication['additionalInfo']);
+      usageDurationController =
+          TextEditingController(text: medication['usageDuration']);
+      additionalInfoController =
+          TextEditingController(text: medication['additionalInfo']);
     }
   }
 
@@ -49,7 +55,8 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
     if (picked != null) {
       setState(() {
         selectedDateRange = picked;
-        usageDurationController.text = "${DateFormat('yyyy.MM.dd').format(picked.start)} ~ ${DateFormat('yyyy.MM.dd').format(picked.end)}";
+        usageDurationController.text =
+            "${DateFormat('yyyy.MM.dd').format(picked.start)} ~ ${DateFormat('yyyy.MM.dd').format(picked.end)}";
       });
     }
   }
@@ -121,7 +128,8 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
               alignment: Alignment.center,
               child: ElevatedButton(
                 onPressed: () async {
-                  final provider = Provider.of<MedicationInfoProvider>(context, listen: false);
+                  final provider = Provider.of<MedicationInfoProvider>(context,
+                      listen: false);
 
                   if (widget.isNewMedication) {
                     String medicationId = await provider.saveNewToFirebase(
@@ -140,10 +148,20 @@ class _EditAllInfoPageState extends State<EditAllInfoPage> {
 
                   Navigator.pop(context);
                 },
-                style: ElevatedButton.styleFrom(iconColor: Colors.teal),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(400, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Color(0xFF243642), // 테두리 색상
+                      width: 2, // 테두리 두께
+                    ), // 테두리 두께
+                  ),
+                  backgroundColor: Color(0xFF243642),
+                ),
                 child: Text(
-                  widget.isNewMedication ? '새로 추가' : '저장',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  widget.isNewMedication ? '추가하기' : '변경하기',
+                  style: TextStyle(color: Color(0xFFEEEEEE), fontSize: 19),
                 ),
               ),
             )

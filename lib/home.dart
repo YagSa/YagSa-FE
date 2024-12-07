@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
       await Provider.of<MedicationInfoProvider>(context, listen: false)
           .loadFromFirebase();
       setState(() {
-        _isloading = true;
+        _isloading = false;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -206,7 +206,7 @@ class _HomePageState extends State<HomePage> {
                           direction: DismissDirection.endToStart,
                           onDismissed: (direction) async {
                             await _stopAlarm(schedule['id']);
-                            scheduleProvider.deleteSchedule(schedule['id']);
+                            scheduleProvider.deleteSchedule(schedule['id'], true);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
                             );
@@ -227,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                                       parseTime(schedule['time']);
                                   print('Parsed alarm time: $alarmTime');
                                   scheduleProvider.toggleSchedule(
-                                      schedule['id'], value);
+                                      schedule['id'], value, true);
                                 } catch (e) {
                                   print('Error parsing time: $e');
                                 }

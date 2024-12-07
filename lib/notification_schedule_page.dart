@@ -45,7 +45,7 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
   String formatTimeOfDay(TimeOfDay time) {
     final now = DateTime.now();
     final dateTime =
-    DateTime(now.year, now.month, now.day, time.hour, time.minute);
+        DateTime(now.year, now.month, now.day, time.hour, time.minute);
     return DateFormat('hh:mm a').format(dateTime);
   }
 
@@ -55,9 +55,10 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          "일정 편집",
+          "일정 추가",
           style: TextStyle(
-            fontSize: 24,
+            fontFamily: 'Tenada',
+            fontSize: 30,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -72,6 +73,7 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
             const Text(
               "알림 시간 선택", // "Select Notification Time"
               style: TextStyle(
+                fontFamily: 'Tenada',
                 fontSize: 20.0,
                 fontWeight: FontWeight.bold,
               ),
@@ -125,10 +127,22 @@ class _NotificationSchedulePageState extends State<NotificationSchedulePage> {
                           });
                         }
                       },
-                      style: ElevatedButton.styleFrom(iconColor: Colors.teal),
-                      child: const Text('저장',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(400, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(
+                            color: Color(0xFF243642), // 테두리 색상
+                            width: 2, // 테두리 두께
+                          ), // 테두리 두께
+                        ),
+                        backgroundColor: Color(0xFF243642),
+                      ),
+                      child: Text(
+                        '저장하기',
+                        style:
+                            TextStyle(color: Color(0xFFEEEEEE), fontSize: 19),
+                      ),
                     ),
             ),
           ],

@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
               Provider.of<MedicationInfoProvider>(context, listen: false).loadFromFirebase();
               final user = FirebaseAuth.instance.currentUser;
               if (user != null) {
-                Provider.of<ScheduleProvider>(context, listen: false).loadSchedulesFromFirebase(user.uid);
+                Provider.of<ScheduleProvider>(context, listen: false).loadAllSchedulesFromFirebase();
               }
               return const HomePage();
             } else {

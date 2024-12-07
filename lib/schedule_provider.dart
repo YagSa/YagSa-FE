@@ -68,8 +68,9 @@ class ScheduleProvider extends ChangeNotifier {
           .collection('users')
           .doc(user.uid)
           .collection('schedules')
-          .where('medicationId', isEqualTo: medicationId); // Only load schedules for specific medication
-
+          .where('medicationId',
+              isEqualTo:
+                  medicationId); // Only load schedules for specific medication
 
       final querySnapshot = await scheduleCollection.get();
 
@@ -88,10 +89,12 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   // add new schedule data to Firestore and update
-  Future<void> addSchedule(String medicationId, String time, bool isEnabled) async {
+  Future<void> addSchedule(
+      String medicationId, String time, bool isEnabled) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentReference userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      DocumentReference userDoc =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
 
       String formattedTime = formatTime(time);
 
@@ -117,9 +120,9 @@ class ScheduleProvider extends ChangeNotifier {
     }
   }
 
-
   // update toggle
-  Future<void> toggleSchedule(String scheduleId, bool newStatus) async {
+  Future<void> toggleSchedule(
+      String scheduleId, bool newStatus, bool loadAll) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final scheduleRef = FirebaseFirestore.instance
@@ -129,8 +132,11 @@ class ScheduleProvider extends ChangeNotifier {
           .doc(scheduleId);
 
       await scheduleRef.update({'isEnabled': newStatus});
-      final medicationId = schedules.firstWhere((schedule) => schedule['id'] == scheduleId)['medicationId'];
-      await loadSchedulesFromFirebase(medicationId);
+      final medicationId = schedules.firstWhere(
+          (schedule) => schedule['id'] == scheduleId)['medicationId'];
+      loadAll
+          ? await loadAllSchedulesFromFirebase()
+          : await loadSchedulesFromFirebase(medicationId);
     }
   }
 
@@ -139,7 +145,7 @@ class ScheduleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteSchedule(String scheduleId) async {
+  Future<void> deleteSchedule(String scheduleId, bool loadAll) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final scheduleRef = FirebaseFirestore.instance
@@ -147,9 +153,12 @@ class ScheduleProvider extends ChangeNotifier {
           .doc(user.uid)
           .collection('schedules')
           .doc(scheduleId);
-      final medicationId = schedules.firstWhere((schedule) => schedule['id'] == scheduleId)['medicationId'];
+      final medicationId = schedules.firstWhere(
+          (schedule) => schedule['id'] == scheduleId)['medicationId'];
       await scheduleRef.delete();
-      await loadSchedulesFromFirebase(medicationId);
+      loadAll
+          ? await loadAllSchedulesFromFirebase()
+          : await loadSchedulesFromFirebase(medicationId);
     }
   }
 }

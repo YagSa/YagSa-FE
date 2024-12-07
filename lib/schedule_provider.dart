@@ -7,7 +7,7 @@ import 'package:alarm/alarm.dart';
 class ScheduleProvider extends ChangeNotifier {
   List<Map<String, dynamic>> schedules = [];
 
-  Future<void> _setDailyAlarm({
+  Future<void> setDailyAlarm({
     required String id,
     required DateTime dateTime,
     required String title,
@@ -18,8 +18,8 @@ class ScheduleProvider extends ChangeNotifier {
       dateTime: dateTime,
       assetAudioPath: 'assets/alarm.MP3',
       notificationSettings: NotificationSettings(
-        title: 'Alarm',
-        body: 'It\'s time for $title!',
+        title: title,
+        body: body,
         stopButton: 'Stop',
         icon: 'app_icon',
       ),
@@ -34,6 +34,11 @@ class ScheduleProvider extends ChangeNotifier {
 
     await Alarm.set(alarmSettings: alarmSettings);
     print('Alarm set: $title at $dateTime');
+  }
+
+  Future<void> stopAlarm(String id) async {
+    await Alarm.stop(id.hashCode);
+    print('Alarm deleted: $id');
   }
 
   Future<void> loadAllSchedulesFromFirebase() async {

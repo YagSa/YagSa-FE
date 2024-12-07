@@ -86,55 +86,34 @@ class _HomePageState extends State<HomePage> {
     unawaited(loadAlarms());
   }
 
-  Future<void> _setDailyAlarm({
-    required String id,
-    required DateTime dateTime,
-    required String title,
-    required String body,
-  }) async {
-    final alarmSettings = AlarmSettings(
-      id: id.hashCode,
-      dateTime: dateTime,
-      assetAudioPath: 'assets/alarm.MP3',
-      notificationSettings: NotificationSettings(
-        title: title,
-        body: body,
-        stopButton: 'Stop',
-        icon: 'app_icon',
-      ),
-      loopAudio: true,
-      vibrate: true,
-      volume: 0.1,
-      volumeEnforced: true,
-      fadeDuration: 0.0,
-      warningNotificationOnKill: true,
-      androidFullScreenIntent: true,
-    );
-
-    await Alarm.set(alarmSettings: alarmSettings);
-    print('Alarm set: $title at $dateTime');
-  }
-
-  Future<void> _stopAlarm(String id) async {
-    await Alarm.stop(id.hashCode);
-    print('Alarm deleted: $id');
-  }
-
   DateTime parseTime(String time) {
     final DateFormat format = DateFormat('hh:mm a');
     try {
-      DateTime parsedTime = format.parse(time);
-      return DateTime.now().copyWith(
-          hour: parsedTime.hour,
-          minute: parsedTime.minute,
-          second: 0,
-          millisecond: 0);
+      DateTime parsedTime = DateTime.now().copyWith(
+        hour: format.parse(time).hour,
+        minute: format.parse(time).minute,
+        second: 0,
+        millisecond: 0,
+      );
+      DateTime now = DateTime.now();
+
+      if (parsedTime.isBefore(now)) {
+        now = now.add(Duration(days: 1));
+      }
+
+      print('Parsing time: $now , $parsedTime');
+
+      return now.copyWith(
+        hour: parsedTime.hour,
+        minute: parsedTime.minute,
+        second: 0,
+        millisecond: 0,
+      );
     } catch (e) {
       print('Error parsing time: $e');
       return DateTime.now();
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationInfoProvider>();
@@ -205,8 +184,11 @@ class _HomePageState extends State<HomePage> {
                           ),
                           direction: DismissDirection.endToStart,
                           onDismissed: (direction) async {
-                            await _stopAlarm(schedule['id']);
-                            scheduleProvider.deleteSchedule(schedule['id'], true);
+                            await Provider.of<ScheduleProvider>(context,
+                                    listen: false)
+                                .stopAlarm(schedule['id']);
+                            scheduleProvider.deleteSchedule(
+                                schedule['id'], true);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('알림 시간이 삭제되었습니다')),
                             );
@@ -346,14 +328,16 @@ class _HomePageState extends State<HomePage> {
             try {
               DateTime alarmTime = parseTime(time);
               if (value) {
-                _setDailyAlarm(
+                Provider.of<ScheduleProvider>(context, listen: false)
+                    .setDailyAlarm(
                   id: time,
                   dateTime: alarmTime,
                   title: title,
                   body: description,
                 );
               } else {
-                _stopAlarm(time);
+                Provider.of<ScheduleProvider>(context, listen: false)
+                    .stopAlarm(time);
               }
             } catch (e) {
               print('Error parsing time: $e');

@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                   ? Center(
                       child: _isloading
                           ? CircularProgressIndicator(color: Color(0xFF688F7E))
-                          : Text("등록된 약물이 없습니다."))
+                          : Text("등록된 일정이 없습니다."))
                   : ListView.builder(
                       itemCount: scheduleProvider.schedules.length,
                       itemBuilder: (context, index) {
@@ -251,7 +251,7 @@ class _HomePageState extends State<HomePage> {
                   ? Center(
                       child: _isloading
                           ? CircularProgressIndicator(color: Color(0xFF688F7E))
-                          : Text("등록된 일정이 없습니다."))
+                          : Text("등록된 약물이 없습니다."))
                   : ListView.builder(
                       itemCount: medicationProvider.medications.length,
                       itemBuilder: (context, index) {

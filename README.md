@@ -15,9 +15,9 @@
 - Firebase
 
 ## Project Documentation
-![프로젝트 메뉴얼.pdf](https://github.com/user-attachments/files/18901231/default.pdf)
+[프로젝트 메뉴얼.pdf](https://github.com/user-attachments/files/18901231/default.pdf)
 
 
 ## Demo Video
-![Watch the video](https://youtu.be/6nBLyXFofSI)
+[![IMAGE ALT TEXT HERE](https://youtu.be/6nBLyXFofSI)
 

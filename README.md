@@ -16,5 +16,5 @@
 
 
 ## Demo Video
-[![Watch the video]](https://youtu.be/6nBLyXFofSI)
+[Watch the video](https://youtu.be/6nBLyXFofSI)
 

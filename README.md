@@ -10,4 +10,11 @@
 
 - Flutter
 - Firebase
+
+## Project Documentation
 [프로젝트 메뉴얼.pdf](https://github.com/user-attachments/files/18901231/default.pdf)
+
+
+## Demo Video
+[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://youtu.be/6nBLyXFofSI)
+

@@ -10,3 +10,4 @@
 
 - Flutter
 - Firebase
+[프로젝트 메뉴얼.pdf](https://github.com/user-attachments/files/18901231/default.pdf)

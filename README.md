@@ -19,5 +19,5 @@
 
 
 ## Demo Video
-(https://img.youtube.com/vi/6nBLyXFofSI/0.jpg)](https://youtu.be/6nBLyXFofSI)
+[![WATCH THE DEMO VIDEO](https://img.youtube.com/vi/6nBLyXFofSI/0.jpg)](https://youtu.be/6nBLyXFofSI)
 
